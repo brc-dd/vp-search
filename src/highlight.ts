@@ -64,6 +64,32 @@ export function fromRanges(text: string, ranges: HighlightRange[]): MarkedText {
   return out
 }
 
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: '\u00A0',
+}
+
+/**
+ * For backends whose stored/highlighted text is HTML-entity-escaped (the
+ * DocSearch crawler, Pagefind excerpts). Segments are plain text — the UI
+ * escapes at render — so entities must be decoded exactly once on ingest.
+ */
+export function unescapeEntities(text: string): string {
+  return text.replace(/&(#x?[\da-f]+|[a-z]+);/gi, (match, code: string) => {
+    if (code[0] === '#') {
+      const hex = code[1] === 'x' || code[1] === 'X'
+      const point = parseInt(code.slice(hex ? 2 : 1), hex ? 16 : 10)
+      if (!Number.isFinite(point) || point < 0 || point > 0x10ffff) return match
+      return String.fromCodePoint(point)
+    }
+    return NAMED_ENTITIES[code.toLowerCase()] ?? match
+  })
+}
+
 /**
  * Recompute marks from matched terms, for backends that report no positions
  * (MiniSearch, FlexSearch). Longest-first so a short term can't shadow a

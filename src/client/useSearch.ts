@@ -64,6 +64,12 @@ export function useSearch(options: UseSearchOptions) {
     }
   }
 
+  /** Re-runs the current query immediately; `load` is retried too after a failure. */
+  function retry() {
+    clearTimeout(timer)
+    run(query.value.trim())
+  }
+
   if (getCurrentScope()) {
     onScopeDispose(() => {
       clearTimeout(timer)
@@ -71,5 +77,5 @@ export function useSearch(options: UseSearchOptions) {
     })
   }
 
-  return { query, results, total, status, error }
+  return { query, results, total, status, error, retry }
 }

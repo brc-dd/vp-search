@@ -10,3 +10,10 @@ export {
   type HighlightRange,
 } from './highlight.ts'
 export { algoliaAdapter, type AlgoliaAdapterOptions } from './adapters/algolia.ts'
+export {
+  createSearchTranslate,
+  defaultTranslations,
+  type SearchOptions,
+  type SearchTranslationKey,
+  type SearchTranslations,
+} from './translations.ts'

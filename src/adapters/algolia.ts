@@ -1,5 +1,5 @@
 import { defineSearchAdapter, type SearchAdapter } from '../adapter.ts'
-import { fromTagged, plain } from '../highlight.ts'
+import { fromTagged, plain, unescapeEntities } from '../highlight.ts'
 import type { MarkedText, SearchResult } from '../types.ts'
 
 /** Sentinel highlight tags: can't occur in indexed text, no HTML involved. */
@@ -95,18 +95,24 @@ function toResult(hit: DocSearchHit): SearchResult {
     title: marked(own),
     titles: levels.slice(0, levels.indexOf(own)).map(marked),
     excerpt: hit._snippetResult?.content?.value
-      ? fromTagged(hit._snippetResult.content.value, PRE, POST)
+      ? clean(fromTagged(hit._snippetResult.content.value, PRE, POST))
       : undefined,
-    group: hit.hierarchy.lvl0?.replaceAll('\u200B', '').trim(),
+    group: hit.hierarchy.lvl0
+      ? unescapeEntities(hit.hierarchy.lvl0.replaceAll('\u200B', '')).trim()
+      : undefined,
     kind: hit.type === 'content' ? 'content' : hit.type === 'lvl1' ? 'page' : 'heading',
     raw: hit,
   }
 }
 
-/** Crawled headings carry zero-width spaces from heading-anchor markup. */
+/** Crawler text is entity-escaped and headings carry zero-width spaces from
+ * heading-anchor markup. */
 function clean(text: MarkedText): MarkedText {
   const out = text
-    .map((seg) => ({ ...seg, text: seg.text.replaceAll('\u200B', '') }))
+    .map((seg) => ({
+      ...seg,
+      text: unescapeEntities(seg.text).replaceAll('\u200B', ''),
+    }))
     .filter((seg) => seg.text)
   const last = out.at(-1)
   if (last) last.text = last.text.trimEnd()
