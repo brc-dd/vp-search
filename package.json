@@ -5,17 +5,36 @@
   "type": "module",
   "description": "Backend-agnostic search for VitePress — one accessible UI, swappable search adapters.",
   "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./adapters/algolia": "./src/adapters/algolia.ts",
+    "./client/*": "./src/client/*",
+    "./node": "./src/node/index.ts"
+  },
   "scripts": {
     "typecheck": "vue-tsc --noEmit",
-    "example:algolia": "node examples/algolia-live.ts"
+    "example:algolia": "node examples/algolia-live.ts",
+    "docs:dev": "pnpm -C examples/docs dev",
+    "docs:build": "pnpm -C examples/docs build"
   },
   "peerDependencies": {
+    "vitepress": "^1.6.0 || ^2.0.0-alpha.1",
     "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "vitepress": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.4.0"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
     "prettier": "^3.9.6",
     "typescript": "^6.0.3",
+    "vite": "^8.2.1",
+    "vitepress": "2.0.0-alpha.19",
     "vue": "^3.5.41",
     "vue-tsc": "^3.3.10"
   }

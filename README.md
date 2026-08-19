@@ -2,7 +2,7 @@
 
 Backend-agnostic search for VitePress: one accessible, theme-native search UI, with the backend swappable behind a small adapter interface.
 
-> Status: design phase. The data format and adapter contract are the current focus; the UI is a placeholder.
+> Status: working Algolia wiring. The shared format, adapter contract, an accessible `<dialog>`-based UI, the vite plugin (alias + virtual modules), and an example running the official VitePress docs are in place. Other adapters and upstreaming are future phases; see [DESIGN.md](DESIGN.md).
 
 ## Why
 
@@ -26,10 +26,14 @@ Non-goals: AI answer/chat surfaces (DocSearch's askAi side panel and similar) â€
 src/
   types.ts          # the shared data format (the core of this project)
   adapter.ts        # SearchAdapter contract + defineSearchAdapter helper
-  highlight.ts      # helpers to turn backend highlight styles into Segments
-  adapters/         # one module per backend (planned subpath exports)
-  client/           # the Vue UI (placeholder for now)
-examples/           # runnable end-to-end checks against real backends
+  highlight.ts      # backend highlight styles -> segments, entity decoding
+  translations.ts   # SearchTranslations + defaults + resolver
+  adapters/         # one module per backend (subpath exports)
+  client/           # VPNavBarSearch (aliased entry) + VPSearchBox dialog
+  node/             # anySearch() vite plugin: alias hijack + virtual modules
+examples/
+  algolia-live.ts   # CLI end-to-end check against the real vitepress index
+  docs/             # the official VitePress docs, search replaced by this plugin
 DESIGN.md           # data format rationale + per-backend mapping tables
 ```
 
@@ -39,4 +43,5 @@ DESIGN.md           # data format rationale + per-backend mapping tables
 pnpm install
 pnpm typecheck
 pnpm example:algolia   # live query against the vitepress DocSearch index, printed normalized
+pnpm docs:dev          # official docs example with vitepress-any-search as the navbar search
 ```
