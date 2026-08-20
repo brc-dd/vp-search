@@ -28,11 +28,16 @@ export function fromTagged(value: string, preTag: string, postTag: string): Mark
     if (start > 0) out.push({ text: rest.slice(0, start) })
     rest = rest.slice(start + preTag.length)
     const end = rest.indexOf(postTag)
+    const last = start === 0 ? out.at(-1) : undefined
     if (end < 0) {
-      out.push({ text: rest, mark: true })
+      if (last?.mark) last.text += rest
+      else out.push({ text: rest, mark: true })
       break
     }
-    if (end > 0) out.push({ text: rest.slice(0, end), mark: true })
+    if (end > 0) {
+      if (last?.mark) last.text += rest.slice(0, end)
+      else out.push({ text: rest.slice(0, end), mark: true })
+    }
     rest = rest.slice(end + postTag.length)
   }
   return out
@@ -57,7 +62,10 @@ export function fromRanges(text: string, ranges: HighlightRange[]): MarkedText {
     const end = Math.min(range.end, text.length)
     if (end <= start) continue
     if (start > cursor) out.push({ text: text.slice(cursor, start) })
-    out.push({ text: text.slice(start, end), mark: true })
+    const last = out.at(-1)
+    // contiguous marks merge so the UI renders one <mark>, not touching pairs
+    if (last?.mark && start === cursor) last.text += text.slice(start, end)
+    else out.push({ text: text.slice(start, end), mark: true })
     cursor = end
   }
   if (cursor < text.length) out.push({ text: text.slice(cursor) })
