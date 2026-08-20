@@ -66,7 +66,7 @@ const groups = computed(() => {
   const cleanUrls = site.value.cleanUrls
   const byKey = new Map<string, Group>()
   const out: Group[] = []
-  shownResults.value.forEach((result, index) => {
+  for (const result of shownResults.value) {
     const key = result.group ?? result.url.split('#')[0]
     let group = byKey.get(key)
     if (!group) {
@@ -76,12 +76,16 @@ const groups = computed(() => {
     }
     group.rows.push({
       result,
-      index,
+      index: 0,
       href: getRelativePath(result.url, cleanUrls),
       crumbs: result.titles ?? [],
       label: labelOf(result),
     })
-  })
+  }
+  // grouping reorders results, so indexes must follow DISPLAY order — keyboard
+  // navigation, aria ids, and Enter all walk the flattened grouped list
+  let index = 0
+  for (const group of out) for (const row of group.rows) row.index = index++
   return out
 })
 
