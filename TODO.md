@@ -77,8 +77,3 @@ Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); cur
 - [ ] Meilisearch / Typesense (mappings specced in DESIGN §4; mechanical)
 - [ ] zbsearch — re-checked 2026-08: `zbsearch@4` is now fumadocs-core's default engine; core/stemmers/highlight install clean, but tokenizers + plugin-match-highlight still ship `workspace:*` (offsets path blocked) — re-check when those publish (hedge signal: Fumapress v1, same author, defaulted to FlexSearch instead)
 - [ ] `custom` example: paid Algolia with own record schema (hit-transform option)
-
-## Watch
-
-- vuejs/vitepress#5349 (build-flow rewrite) — touches the hooks the indexer wraps
-- Crawl after `005aa5c3` deploys: vitepress.dev `lvl0` should localize; algolia adapter groups start differentiating on their own
