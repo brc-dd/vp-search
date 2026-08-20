@@ -27,12 +27,11 @@ export default async function setup(project: TestProject): Promise<() => Promise
   try {
     const browserServer = await chromium.launchServer({
       headless: true,
-      // The GitHub runner's sandbox is unavailable to an unprivileged container,
-      // and renderers crash on /dev/shm exhaustion under the dev-mode load
-      // (two live vite servers) — write shared memory to /tmp instead.
-      ...(process.env['CI'] && {
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      }),
+      // The GitHub runner's sandbox is unavailable to an unprivileged container.
+      // Nothing else belongs here: playwright's default chromiumSwitches already
+      // carry the CI-hardening set (--disable-dev-shm-usage included), and extra
+      // --disable-features flags would REPLACE its curated list (last one wins).
+      ...(process.env['CI'] && { args: ['--no-sandbox', '--disable-setuid-sandbox'] }),
     })
     stops.push(() => browserServer.close())
 

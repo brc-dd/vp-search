@@ -108,7 +108,7 @@ export default defineConfig({
           testTimeout: 30_000,
           hookTimeout: 30_000,
           retry: ci
-            ? { count: 2, delay: 250, condition: /timeout|Target (page|closed)|net::/i }
+            ? { count: 2, delay: 250, condition: /timeout|Target (page|closed)|net::|crashed/i }
             : 0,
         },
       },
