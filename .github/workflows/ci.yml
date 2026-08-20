@@ -11,12 +11,28 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Deterministic clock and locale for every process, including vitest's
+  # globalSetup and the vitepress builds — test.env only reaches test workers.
+  TZ: UTC
+  LANG: en_US.UTF-8
+  FORCE_COLOR: '1'
+  # minimumReleaseAge/trustPolicy re-verification of the whole lockfile costs
+  # ~15-20s per install; the check job below opts back in so it still happens
+  # exactly once per run.
+  PNPM_CONFIG_TRUST_LOCKFILE: 'true'
+
 jobs:
+  # Compile + publish-shape validation. Owns the lockfile verification.
   check:
-    runs-on: ubuntu-latest
+    # ubuntu-24.04 rather than -latest: the suites are ICU-sensitive and 26.04
+    # images are still in preview; move deliberately.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
+    env:
+      PNPM_CONFIG_TRUST_LOCKFILE: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -31,17 +47,81 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-      - name: Typecheck
-        run: pnpm typecheck
-
+      # Build precedes typecheck: vue-tsc -p test checks the integrity suite
+      # against the real dist .d.ts, which doubles as validation of the emitted
+      # declarations.
       - name: Build packages
         run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
 
       - name: Build example site
         run: pnpm docs:build
 
+      - name: Integrity tests
+        run: pnpm test:integrity
+
+  # Fast hermetic lane: no build, no browser. Reddest fastest.
+  unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm and node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+        with:
+          cache: true
+
+      - name: Unit tests
+        run: pnpm test:unit
+
+  # Real browser over the dedicated fixture site, dev and built output — the
+  # two paths genuinely diverge (inlined dev locales vs fetched artifacts).
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mode: dev
+            script: test:e2e
+          - mode: build
+            script: test:e2e:build
+    name: e2e (${{ matrix.mode }})
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm and node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+        with:
+          cache: true
+
+      # ~77MB headless shell; vitest/playwright drive it by default, no full
+      # Chromium needed. Not cached: restore time ≈ download time at one
+      # browser in one job (playwright's own CI guidance).
+      - name: Install Chromium headless shell
+        run: pnpm --filter vp-search-e2e exec playwright-core install chromium --only-shell
+
+      - name: E2E tests
+        env:
+          SCRIPT: ${{ matrix.script }}
+        run: pnpm run "$SCRIPT"
+
   lint-workflows:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
