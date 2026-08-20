@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "typecheck": "tsc -p tsconfig.shared.json && tsc -p tsconfig.client.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.node.json"
+    "typecheck": "tsc -p tsconfig.shared.json && tsc -p tsconfig.client.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.node.json && tsc -p test"
   },
   "peerDependencies": {
     "@vp-search/core": "workspace:*",

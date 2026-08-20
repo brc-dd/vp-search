@@ -1,0 +1,12 @@
+{
+  "name": "vp-search-e2e",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@vp-search/core": "workspace:*",
+    "@vp-search/minisearch": "workspace:*",
+    "playwright-core": "^1.62.0",
+    "vitepress": "2.0.0-alpha.19",
+    "vue": "^3.5.41"
+  }
+}

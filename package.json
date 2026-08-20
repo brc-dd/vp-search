@@ -19,20 +19,34 @@
   },
   "scripts": {
     "build": "pnpm --filter \"./packages/*\" build",
-    "typecheck": "tsc -p . && pnpm --filter \"./packages/*\" typecheck",
+    "typecheck": "tsc -p . && vue-tsc -p test && tsc -p test/e2e && pnpm --filter \"./packages/*\" typecheck",
     "format": "prettier --experimental-cli --write .",
     "format:check": "prettier --experimental-cli --check .",
     "docs:dev": "pnpm -C examples/docs dev",
-    "docs:build": "pnpm -C examples/docs build"
+    "docs:build": "pnpm -C examples/docs build",
+    "test": "vitest -p shared -p client -p worker -p node",
+    "test:unit": "vitest run -p shared -p client -p worker -p node",
+    "test:integrity": "vitest run -p integrity",
+    "test:e2e": "vitest run -p e2e",
+    "test:e2e:build": "VP_E2E_BUILD=1 vitest run -p e2e",
+    "test:live": "VP_SEARCH_LIVE=1 vitest run -p live"
   },
   "devDependencies": {
     "@arethetypeswrong/core": "^0.18.5",
     "@types/node": "^26.2.0",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vitest/coverage-v8": "5.0.0-rc.2",
+    "@vitest/web-worker": "5.0.0-rc.2",
+    "@vue/test-utils": "^2.4.11",
+    "happy-dom": "^20.11.6",
     "prettier": "^3.9.6",
     "publint": "^0.3.24",
     "tsdown": "^0.22.14",
     "typescript": "^6.0.3",
     "unplugin-unused": "^0.6.0",
+    "vite": "^8.2.1",
+    "vitest": "5.0.0-rc.2",
+    "vue": "^3.5.41",
     "vue-tsc": "^3.3.10"
   }
 }

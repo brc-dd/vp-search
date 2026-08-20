@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "typecheck": "tsc -p tsconfig.shared.json && vue-tsc -p tsconfig.client.json && tsc -p tsconfig.node.json"
+    "typecheck": "tsc -p tsconfig.shared.json && vue-tsc -p tsconfig.client.json && tsc -p tsconfig.node.json && vue-tsc -p test"
   },
   "peerDependencies": {
     "vitepress": "^2.0.0-alpha.1",

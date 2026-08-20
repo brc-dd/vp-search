@@ -4,3 +4,9 @@ dist
 .DS_Store
 **/.vitepress/cache
 **/.vitepress/dist
+
+# test outputs — `__snapshots__` is committed on purpose and stays tracked
+coverage
+.vitest
+**/__traces__/
+**/__screenshots__/

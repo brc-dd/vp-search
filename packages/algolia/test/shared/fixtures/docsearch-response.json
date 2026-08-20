@@ -1,0 +1,180 @@
+{
+  "hits": [
+    {
+      "objectID": "25-https://vitepress.dev/guide/using-vue",
+      "url": "https://vitepress.dev/guide/using-vue#using-vue-in-markdown",
+      "type": "lvl1",
+      "content": null,
+      "hierarchy": {
+        "lvl0": "Writing",
+        "lvl1": "Using Vue in Markdown \u200b",
+        "lvl2": null,
+        "lvl3": null,
+        "lvl4": null,
+        "lvl5": null,
+        "lvl6": null
+      },
+      "_highlightResult": {
+        "hierarchy": {
+          "lvl0": {
+            "value": "Writing"
+          },
+          "lvl1": {
+            "value": "Using \u0002Vue\u0003 in \u0002Markdown\u0003 \u200b"
+          }
+        }
+      }
+    },
+    {
+      "objectID": "27-https://vitepress.dev/guide/markdown",
+      "url": "https://vitepress.dev/guide/markdown#header-anchors",
+      "type": "lvl2",
+      "content": null,
+      "hierarchy": {
+        "lvl0": "Writing",
+        "lvl1": "Markdown Extensions \u200b",
+        "lvl2": "Header Anchors \u200b",
+        "lvl3": null,
+        "lvl4": null,
+        "lvl5": null,
+        "lvl6": null
+      },
+      "_highlightResult": {
+        "hierarchy": {
+          "lvl0": {
+            "value": "Writing"
+          },
+          "lvl1": {
+            "value": "\u0002Markdown\u0003 Extensions \u200b"
+          },
+          "lvl2": {
+            "value": "Header \u0002Anchors\u0003 \u200b"
+          }
+        }
+      }
+    },
+    {
+      "objectID": "38-https://vitepress.dev/reference/site-config",
+      "url": "https://vitepress.dev/reference/site-config#vite-vue-markdown-config",
+      "type": "lvl3",
+      "content": null,
+      "hierarchy": {
+        "lvl0": "Reference",
+        "lvl1": "Site Config \u200b",
+        "lvl2": "Overview \u200b",
+        "lvl3": "Vite, Vue &amp; Markdown Config \u200b",
+        "lvl4": null,
+        "lvl5": null,
+        "lvl6": null
+      },
+      "_highlightResult": {
+        "hierarchy": {
+          "lvl0": {
+            "value": "Reference"
+          },
+          "lvl1": {
+            "value": "Site \u0002Config\u0003 \u200b"
+          },
+          "lvl2": {
+            "value": "Overview \u200b"
+          },
+          "lvl3": {
+            "value": "Vite, \u0002Vue\u0003 &amp; \u0002Markdown\u0003 \u0002Config\u0003 \u200b"
+          }
+        }
+      }
+    },
+    {
+      "objectID": "162-https://vitepress.dev/reference/site-config",
+      "url": "https://vitepress.dev/reference/site-config#markdown",
+      "type": "content",
+      "content": "Set markdown.headers to true or pass @mdit-vue/plugin-headers options to collect headings into useData().page.headers. This option is disabled by default.",
+      "hierarchy": {
+        "lvl0": "Reference",
+        "lvl1": "Site Config \u200b",
+        "lvl2": "Customization \u200b",
+        "lvl3": "markdown \u200b",
+        "lvl4": null,
+        "lvl5": null,
+        "lvl6": null
+      },
+      "_snippetResult": {
+        "content": {
+          "value": "Set \u0002markdown\u0003.headers to true or pass @mdit-\u0002vue\u0003/plugin-headers options to collect headings …"
+        }
+      },
+      "_highlightResult": {
+        "hierarchy": {
+          "lvl0": {
+            "value": "Reference"
+          },
+          "lvl1": {
+            "value": "Site \u0002Config\u0003 \u200b"
+          },
+          "lvl2": {
+            "value": "Customization \u200b"
+          },
+          "lvl3": {
+            "value": "\u0002markdown\u0003 \u200b"
+          }
+        }
+      }
+    },
+    {
+      "objectID": "39-https://vitepress.dev/ja/guide/using-vue",
+      "url": "https://vitepress.dev/ja/guide/using-vue#script-and-style",
+      "type": "lvl2",
+      "content": null,
+      "hierarchy": {
+        "lvl0": "執筆",
+        "lvl1": "MarkdownでVueを使う \u200b",
+        "lvl2": "&lt;script&gt; と &lt;style&gt; \u200b",
+        "lvl3": null,
+        "lvl4": null,
+        "lvl5": null,
+        "lvl6": null
+      },
+      "_highlightResult": {
+        "hierarchy": {
+          "lvl0": {
+            "value": "執筆"
+          },
+          "lvl1": {
+            "value": "\u0002Markdown\u0003で\u0002Vue\u0003を使う \u200b"
+          },
+          "lvl2": {
+            "value": "&lt;script&gt; と &lt;style&gt; \u200b"
+          }
+        }
+      }
+    },
+    {
+      "objectID": "25-https://vitepress.dev/zh/guide/using-vue",
+      "url": "https://vitepress.dev/zh/guide/using-vue#using-vue-in-markdown",
+      "type": "lvl1",
+      "content": null,
+      "hierarchy": {
+        "lvl0": "写作",
+        "lvl1": "在 Markdown 中使用 Vue \u200b",
+        "lvl2": null,
+        "lvl3": null,
+        "lvl4": null,
+        "lvl5": null,
+        "lvl6": null
+      },
+      "_highlightResult": {
+        "hierarchy": {
+          "lvl0": {
+            "value": "写作"
+          },
+          "lvl1": {
+            "value": "在 \u0002Markdown\u0003 中使用 \u0002Vue\u0003 \u200b"
+          }
+        }
+      }
+    }
+  ],
+  "nbHits": 779,
+  "exhaustiveNbHits": true,
+  "processingTimeMS": 3
+}

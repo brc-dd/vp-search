@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.client.json"
+    "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.client.json && tsc -p test"
   },
   "peerDependencies": {
     "@vp-search/core": "workspace:*"

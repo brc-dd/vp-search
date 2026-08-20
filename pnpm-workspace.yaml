@@ -1,6 +1,7 @@
 packages:
   - 'packages/*'
   - 'examples/*'
+  - 'test/e2e'
 
 minimumReleaseAge: 1440
 minimumReleaseAgeIgnoreMissingTime: false
@@ -21,3 +22,7 @@ overrides:
 
 patchedDependencies:
   vue-sfc-transformer: patches/vue-sfc-transformer.patch
+# auto-added by pnpm: 20.11.6 was ~21h old at install time. Drop the entry (and
+# re-resolve) once it clears the 1440-minute gate on its own.
+minimumReleaseAgeExclude:
+  - happy-dom@20.11.6

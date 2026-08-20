@@ -4,5 +4,5 @@
     "lib": ["ES2023"],
     "types": ["node"]
   },
-  "include": ["tsdown.base.ts", "shared-globals.d.ts"]
+  "include": ["tsdown.base.ts", "shared-globals.d.ts", "vitest.config.ts"]
 }
