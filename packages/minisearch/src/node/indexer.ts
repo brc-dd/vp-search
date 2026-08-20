@@ -2,6 +2,12 @@ import MiniSearch from 'minisearch'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { resolveSiteDataByRoute, type DefaultTheme, type SiteConfig } from 'vitepress'
+import {
+  CONTENT_FIELDS,
+  CONTENT_STORE_FIELDS,
+  TITLES_FIELDS,
+  TITLES_STORE_FIELDS,
+} from '../fields.ts'
 import { createTokenizer } from '../tokenize.ts'
 import { splitIntoSections } from './extract.ts'
 import { resolveGroup } from './sidebar.ts'
@@ -42,9 +48,6 @@ interface PageEntry {
   locale: string
   records: IndexRecord[]
 }
-
-const TITLES_FIELDS = ['title', 'titles', 'group']
-const TITLES_STORE = ['title', 'titles', 'group', 'kind']
 
 export function createIndexer(
   siteConfig: SiteConfig<DefaultTheme.Config>,
@@ -126,8 +129,9 @@ export function createIndexer(
     if (cached) return cached
 
     const lang = langFor(locale)
-    const fields = tier === 'titles' ? TITLES_FIELDS : ['title', 'titles', 'text', ...extraNames]
-    const storeFields = tier === 'titles' ? TITLES_STORE : [...TITLES_STORE, 'text', ...extraNames]
+    const fields = tier === 'titles' ? [...TITLES_FIELDS] : [...CONTENT_FIELDS, ...extraNames]
+    const storeFields =
+      tier === 'titles' ? [...TITLES_STORE_FIELDS] : [...CONTENT_STORE_FIELDS, ...extraNames]
 
     const mini = new MiniSearch<IndexRecord>({
       idField: 'id',

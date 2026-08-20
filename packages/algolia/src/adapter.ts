@@ -40,7 +40,14 @@ export interface AlgoliaAdapterOptions {
   /** Search-only API key. */
   apiKey: string
   indexName: string
-  /** Extra request parameters, merged over the adapter's defaults. */
+  /**
+   * Extra request parameters. They extend the request — `attributesToRetrieve`
+   * included — but never take over what the mapping depends on: the query, the
+   * sentinel highlight tags, the snippet params, and `hitsPerPage` when the
+   * context carries a limit. `facetFilters` is merged rather than replaced: the
+   * adapter owns `lang:*` (it strips those and re-injects the context's), every
+   * other filter here survives.
+   */
   searchParams?: Record<string, unknown>
 }
 
@@ -55,6 +62,8 @@ export function algoliaAdapter(options: AlgoliaAdapterOptions): SearchAdapter {
     attribution: { label: 'Algolia', url: 'https://www.algolia.com' },
     preconnect: [host],
     async search(query, ctx) {
+      const { facetFilters, ...searchParams } = options.searchParams ?? {}
+      const facets = withLangFacet(facetFilters, ctx.lang)
       const res = await fetch(`${host}/1/indexes/${options.indexName}/query`, {
         method: 'POST',
         signal: ctx.signal ?? null,
@@ -64,15 +73,19 @@ export function algoliaAdapter(options: AlgoliaAdapterOptions): SearchAdapter {
           'X-Algolia-API-Key': options.apiKey,
         },
         body: JSON.stringify({
+          // Overridable: a custom schema retrieves its own attributes.
+          attributesToRetrieve: ['hierarchy', 'content', 'type', 'url'],
+          ...searchParams,
+          // Adapter-owned from here down: the mapping reads the sentinel tags
+          // and the snippet back out, and the locale contract owns `lang:*`,
+          // so caller params must not reach these.
           query,
-          ...(ctx.limit != null && { hitsPerPage: ctx.limit }),
           highlightPreTag: PRE,
           highlightPostTag: POST,
           snippetEllipsisText: '…',
-          attributesToRetrieve: ['hierarchy', 'content', 'type', 'url'],
           attributesToSnippet: ['content:15'],
-          ...(ctx.lang && { facetFilters: [`lang:${ctx.lang}`] }),
-          ...options.searchParams,
+          ...(facets.length > 0 && { facetFilters: facets }),
+          ...(ctx.limit != null && { hitsPerPage: ctx.limit }),
         }),
       })
       if (!res.ok) {
@@ -87,6 +100,30 @@ export function algoliaAdapter(options: AlgoliaAdapterOptions): SearchAdapter {
       }
     },
   })
+}
+
+/**
+ * Core's locale convention (DESIGN §3): the adapter owns the `lang` facet, so
+ * every caller-supplied `lang:*` filter is stripped and the context's lang
+ * re-injected. `facetFilters` is an AND-list whose entries may themselves be
+ * OR-arrays (and may be a bare string), so the strip reaches inside those too;
+ * an OR-array the strip empties would match nothing and is dropped with it.
+ * Everything else the caller sent survives untouched.
+ */
+function withLangFacet(callerFilters: unknown, lang: string | undefined): unknown[] {
+  const entries: unknown[] =
+    callerFilters == null ? [] : Array.isArray(callerFilters) ? callerFilters : [callerFilters]
+  const kept = entries.flatMap((entry) => {
+    if (!Array.isArray(entry)) return isLangFacet(entry) ? [] : [entry]
+    const or: unknown[] = entry.filter((filter: unknown) => !isLangFacet(filter))
+    return or.length > 0 ? [or] : []
+  })
+  return lang ? [...kept, `lang:${lang}`] : kept
+}
+
+/** `-` is Algolia's negation prefix; a negated lang filter is ours as well. */
+function isLangFacet(filter: unknown): boolean {
+  return typeof filter === 'string' && /^-?lang:/.test(filter)
 }
 
 function toResult(hit: DocSearchHit): SearchResult {

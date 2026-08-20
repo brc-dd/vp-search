@@ -4,5 +4,11 @@
     "lib": ["ES2023"],
     "types": []
   },
-  "include": ["src/engine.ts", "src/tokenize.ts", "src/types.ts", "../../shared-globals.d.ts"]
+  "include": [
+    "src/engine.ts",
+    "src/fields.ts",
+    "src/tokenize.ts",
+    "src/types.ts",
+    "../../shared-globals.d.ts"
+  ]
 }

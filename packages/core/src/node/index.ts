@@ -198,12 +198,7 @@ export function search(provider: ProviderDefinition, options: SearchOptions = {}
         )
         if (!resolved) {
           this.error(
-            `cannot resolve clientModule ${JSON.stringify(spec)} from ${base}. ` +
-              (kind === 'virtual'
-                ? '"virtual:" ids must be provided by another plugin’s resolveId hook — ' +
-                  'is that plugin registered in vite.plugins?'
-                : 'Relative paths resolve against the VitePress project root; for a ' +
-                  'config-relative file, derive an absolute path from import.meta.url.'),
+            `cannot resolve clientModule ${JSON.stringify(spec)} from ${base}. ${advice(kind)}`,
           )
         }
         return (
@@ -285,7 +280,18 @@ function wrapBuildHooks(
   pageCallbacks: ReadonlyArray<(page: ProviderPage) => void>,
   buildEndCallbacks: ReadonlyArray<() => Promise<void> | void>,
 ): void {
-  if (wrapped.has(siteConfig)) return
+  if (wrapped.has(siteConfig)) {
+    // The latch is per-SiteConfig but the callbacks are per-instance, so this
+    // instance's would never run. Two search() plugins on one site is
+    // unsupported — they also fight over the alias and the adapter virtual —
+    // and configResolved gets here once per instance, so this warns once.
+    siteConfig.logger.warn(
+      `${TAG} a second search() plugin is configured for this site, so the ${name} provider's ` +
+        `build hooks are ignored — it will index nothing. Keep one search() call; its provider ` +
+        `is the site's search backend.`,
+    )
+    return
+  }
   wrapped.add(siteConfig)
 
   const userTransformHtml = siteConfig.transformHtml
@@ -348,6 +354,27 @@ function classify(specifier: string): SpecifierKind {
   }
   if (BARE_RE.test(specifier)) return 'bare'
   return reject('expected a file path, a bare package specifier, or a `virtual:` id')
+}
+
+/** What to check next, per specifier kind — a missing package is the likeliest. */
+function advice(kind: SpecifierKind): string {
+  if (kind === 'virtual') {
+    return (
+      '"virtual:" ids must be provided by another plugin’s resolveId hook — ' +
+      'is that plugin registered in vite.plugins?'
+    )
+  }
+  if (kind === 'bare') {
+    return (
+      'Bare specifiers resolve as packages: is the provider package installed, ' +
+      'and is the specifier spelled the way the package exports it? A local file ' +
+      'needs a "./" prefix to be treated as a path.'
+    )
+  }
+  return (
+    'Relative paths resolve against the VitePress project root; for a ' +
+    'config-relative file, derive an absolute path from import.meta.url.'
+  )
 }
 
 /** npm package name of a bare specifier (`@scope/name` or `name`). */

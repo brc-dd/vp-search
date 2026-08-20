@@ -23,8 +23,11 @@ export interface DevIndexer {
 
 /**
  * `buildEnd` never fires in dev, so dev re-renders markdown itself instead of
- * reading final HTML. Documented fidelity gap: vite-transform output and
- * dynamic routes only reach production indexes.
+ * reading final HTML. Documented fidelity gap: anything Vue evaluates at
+ * render — vite transforms, dynamic routes, `$frontmatter` interpolation,
+ * `<script setup>` values, data loaders — only reaches production indexes,
+ * while `<ClientOnly>` slots invert (indexed here, absent from SSR output and
+ * so from production).
  */
 export function createDevIndexer(
   siteConfig: SiteConfig<DefaultTheme.Config>,
@@ -83,7 +86,11 @@ export function createDevIndexer(
   }
 
   async function scanAll(): Promise<void> {
-    const pages = siteConfig.pages
+    // Resolved dynamic routes sit in `pages` with no source file behind them —
+    // the production-only slice of the fidelity gap; reading them would only
+    // warn ENOENT once per route per scan.
+    const dynamic = new Set(siteConfig.dynamicRoutes?.map((route) => route.path))
+    const pages = siteConfig.pages.filter((page) => !dynamic.has(page))
     let cursor = 0
     await Promise.all(
       Array.from({ length: Math.min(CONCURRENCY, pages.length) }, async () => {

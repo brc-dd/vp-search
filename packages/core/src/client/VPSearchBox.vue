@@ -144,12 +144,31 @@ watch([status, results], () => {
   announcement.value = interpolate(t(`modal.${key}`), { count, query: query.value.trim() })
 })
 
+/**
+ * The dialog's own `close` event fires from a queued task — too late to be the
+ * only signal, since a re-open landing in that gap would be swallowed. Every
+ * close path we own flips this in the same task instead.
+ */
+let shown = false
+/** Whether the entry `show()` pushed is still the current one, hence ours to drop. */
+let pushed = false
+/** Set while the `history.back()` we issued has still to come back as `popstate`. */
+let unwinding = false
+
 async function show() {
+  if (shown) return
+  shown = true
   query.value = sessionStorage.getItem(QUERY_KEY) ?? ''
   selected.value = 0
   dialog.value?.showModal()
-  // a history entry of our own, so the browser's back button closes the dialog
-  history.pushState(null, '', null)
+  if (!pushed) {
+    pushed = true
+    // a history entry of our own, so the browser's back button closes the
+    // dialog; the scroll goes onto the entry below it the way the router saves
+    // it before its own pushes, or unwinding would land the page at the top
+    history.replaceState({ ...history.state, scrollPosition: window.scrollY }, '')
+    history.pushState(null, '', null)
+  }
   // the restored query reaches the DOM on the next flush; selecting earlier
   // would be undone by that value write
   await nextTick()
@@ -158,7 +177,32 @@ async function show() {
 }
 
 function close() {
+  if (!shown) return
+  shown = false
   dialog.value?.close()
+  emit('close')
+  unwind()
+}
+
+/** Drops our entry, so the first Back press after a close navigates the site. */
+function unwind() {
+  if (!pushed) return
+  pushed = false
+  unwinding = true
+  history.back()
+}
+
+/** Backstop for a close nobody routed through us — `dialog.close()` from elsewhere. */
+function onDialogClose() {
+  if (!shown) return
+  shown = false
+  // a task has passed since the dialog actually shut, so a re-open may have got
+  // here first; either way `open` is what the app wants, and it wins
+  if (open) void show()
+  else {
+    emit('close')
+    unwind()
+  }
 }
 
 onMounted(() => {
@@ -173,7 +217,13 @@ watch(
 watch(query, (value) => sessionStorage.setItem(QUERY_KEY, value))
 
 useEventListener('popstate', () => {
-  if (open) close()
+  if (unwinding) {
+    unwinding = false
+    return
+  }
+  // whatever was popped, the entry we pushed is no longer the current one
+  pushed = false
+  close()
 })
 
 function onKeydown(event: KeyboardEvent) {
@@ -226,15 +276,24 @@ function onEnter(event: KeyboardEvent) {
   if (!row || event.target instanceof HTMLButtonElement) return
   // also suppresses the anchor's own activation when a result holds focus
   event.preventDefault()
-  router.go(row.href)
+  // the destination replaces our entry rather than being pushed after we unwind
+  // it: `history.back()` lands a task later and the push would race it, whereas
+  // replacing leaves the stack reading [origin, destination] outright
+  const replace = pushed
+  pushed = false
   close()
+  router.go(row.href, { replace })
 }
 
 function onResultClick(event: MouseEvent) {
   // The router intercepts internal link clicks in the capture phase, so the SPA
   // navigation has already started; going again would duplicate the history
   // entry. Clicks it leaves alone (new tab, downloads) keep the dialog open.
-  if (event.defaultPrevented) close()
+  if (!event.defaultPrevented) return
+  // the destination sits on top of our entry by now, so unwinding would pop the
+  // destination instead; what stays behind duplicates the URL we came from
+  pushed = false
+  close()
 }
 
 function onDialogClick(event: MouseEvent) {
@@ -280,7 +339,8 @@ function onRetry() {
       class="VPSearchBox"
       :aria-label="t('modal.title')"
       @click="onDialogClick"
-      @close="emit('close')"
+      @cancel="close"
+      @close="onDialogClose"
       @keydown="onKeydown"
     >
       <div class="shell">

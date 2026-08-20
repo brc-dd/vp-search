@@ -61,11 +61,14 @@ export function runSearch(state: TierState, query: string, limit?: number): Sear
 
 function toResult(hit: EngineResult): SearchResult {
   const record = hit as unknown as IndexRecord
-  // Conditional spreads keep absent fields off the postMessage payload.
+  // Conditional spreads keep absent fields off the postMessage payload — an
+  // empty stored array is truthy, so length is what decides for `titles`.
   return {
     url: record.id,
     title: fromTerms(record.title, hit.terms),
-    ...(record.titles && { titles: record.titles.map((title) => fromTerms(title, hit.terms)) }),
+    ...(record.titles?.length && {
+      titles: record.titles.map((title) => fromTerms(title, hit.terms)),
+    }),
     ...(record.text && { excerpt: excerpt(record.text, hit.terms) }),
     ...(record.group != null && { group: record.group }),
     ...(record.kind != null && { kind: record.kind }),

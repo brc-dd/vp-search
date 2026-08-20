@@ -18,26 +18,32 @@ export function textOf(text: MarkedText): string {
  */
 export function fromTagged(value: string, preTag: string, postTag: string): MarkedText {
   const out: TextSegment[] = []
+  // empty runs are dropped and contiguous ones merged, so the UI renders one
+  // <mark> per run and never an empty segment
+  const push = (text: string, mark = false) => {
+    if (!text) return
+    const last = out.at(-1)
+    if (last && !!last.mark === mark) last.text += text
+    else if (mark) out.push({ text, mark: true })
+    else out.push({ text })
+  }
   let rest = value
   while (rest) {
     const start = rest.indexOf(preTag)
+    // a post tag outside a marked run closes nothing; sentinel tags are control
+    // characters, so leaving one in display text is never right
     if (start < 0) {
-      out.push({ text: rest })
+      push(rest.replaceAll(postTag, ''))
       break
     }
-    if (start > 0) out.push({ text: rest.slice(0, start) })
+    push(rest.slice(0, start).replaceAll(postTag, ''))
     rest = rest.slice(start + preTag.length)
     const end = rest.indexOf(postTag)
-    const last = start === 0 ? out.at(-1) : undefined
     if (end < 0) {
-      if (last?.mark) last.text += rest
-      else out.push({ text: rest, mark: true })
+      push(rest, true)
       break
     }
-    if (end > 0) {
-      if (last?.mark) last.text += rest.slice(0, end)
-      else out.push({ text: rest.slice(0, end), mark: true })
-    }
+    push(rest.slice(0, end), true)
     rest = rest.slice(end + postTag.length)
   }
   return out

@@ -13,6 +13,7 @@ export {
 export {
   createSearchTranslate,
   defaultTranslations,
+  interpolate,
   type SearchOptions,
   type SearchTranslationKey,
   type SearchTranslations,

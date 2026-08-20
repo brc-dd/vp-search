@@ -80,7 +80,8 @@ export function minisearchAdapter(): SearchAdapter {
       throw new Error(`${TAG} no search index: the plugin is running another provider.`)
     }
     if (data.locales) return { base: data.base, locales: data.locales }
-    // The build writes a `{ v, locales }` envelope; a bare record is tolerated.
+    // The build writes a bare `Record<locale, entry>`; a `{ v, locales }`
+    // envelope is tolerated, so hand-written or future manifests still load.
     const file = await fetchJson<ManifestFile>(`${data.base}${data.manifest}`)
     return { base: data.base, locales: (file.locales ?? file) as Record<string, LocaleEntry> }
   }

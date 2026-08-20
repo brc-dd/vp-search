@@ -25,7 +25,9 @@ export function useSearch(options: UseSearchOptions) {
 
   let generation = 0
   let controller: AbortController | undefined
-  let loading: Promise<void> | void
+  // a sync `load` leaves no promise behind, so having run needs its own flag
+  let loading: Promise<void> | undefined
+  let loaded = false
   let timer: ReturnType<typeof setTimeout> | undefined
 
   watch(query, (value) => {
@@ -49,7 +51,11 @@ export function useSearch(options: UseSearchOptions) {
         ...options.context?.(),
         signal: controller.signal,
       }
-      await (loading ??= options.adapter.load?.(ctx))
+      if (!loaded) {
+        loading ??= Promise.resolve(options.adapter.load?.(ctx))
+        await loading
+        loaded = true
+      }
       const response = await options.adapter.search(q, ctx)
       if (gen !== generation) return
       results.value = response.results
@@ -57,8 +63,13 @@ export function useSearch(options: UseSearchOptions) {
       status.value = 'done'
     } catch (e) {
       if (gen !== generation) return
-      if (e instanceof DOMException && e.name === 'AbortError') return
-      loading = undefined
+      // every abort we issue bumps the generation first, so an AbortError still
+      // current is the adapter aborting itself — a failed search, but one whose
+      // `load` succeeded, so the memo stands and `retry()` won't reload
+      if (!(e instanceof DOMException && e.name === 'AbortError')) {
+        loading = undefined
+        loaded = false
+      }
       error.value = e
       status.value = 'error'
     }
@@ -78,6 +89,8 @@ export function useSearch(options: UseSearchOptions) {
   if (getCurrentScope()) {
     onScopeDispose(() => {
       clearTimeout(timer)
+      // disposal supersedes too, so nothing in flight can still land
+      generation++
       controller?.abort()
       unsubscribe?.()
     })
