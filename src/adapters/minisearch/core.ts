@@ -14,7 +14,6 @@ const DEFAULT_SEARCH_OPTIONS = {
   boost: { title: 4, text: 2, titles: 1 },
 } satisfies EngineSearchOptions
 
-const DEFAULT_LIMIT = 20
 const CONTEXT_WORDS = 15
 /** CJK has no spaces, so word counting alone would take in a whole section. */
 const CONTEXT_CHARS = 120
@@ -55,7 +54,7 @@ export function runSearch(state: TierState, query: string, limit?: number): Sear
   const started = performance.now()
   const hits = tier.engine.search(query, tier.searchOptions)
   return {
-    results: hits.slice(0, limit ?? DEFAULT_LIMIT).map(toResult),
+    results: (limit == null ? hits : hits.slice(0, limit)).map(toResult),
     total: { count: hits.length, exact: true },
     elapsedMs: performance.now() - started,
   }

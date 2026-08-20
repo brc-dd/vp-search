@@ -59,7 +59,7 @@ export function algoliaAdapter(options: AlgoliaAdapterOptions): SearchAdapter {
         },
         body: JSON.stringify({
           query,
-          hitsPerPage: ctx.limit ?? 20,
+          ...(ctx.limit != null && { hitsPerPage: ctx.limit }),
           highlightPreTag: PRE,
           highlightPostTag: POST,
           snippetEllipsisText: '…',

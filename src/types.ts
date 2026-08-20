@@ -61,7 +61,8 @@ export interface SearchContext {
   localeIndex?: string
   /** Site lang, e.g. 'en-US'. For language-filtered backends. */
   lang?: string
-  /** Soft cap on results; adapters may return fewer. */
+  /** Cap on returned results. Omitted = the backend's own default for
+   * remote adapters, uncapped for local ones. */
   limit?: number
   /** Aborted when the query is superseded; pass to fetch. */
   signal?: AbortSignal
