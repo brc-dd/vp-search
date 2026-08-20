@@ -70,10 +70,16 @@ export function useSearch(options: UseSearchOptions) {
     run(query.value.trim())
   }
 
+  const unsubscribe = options.adapter.onInvalidate?.(() => {
+    const value = query.value.trim()
+    if (value) run(value)
+  })
+
   if (getCurrentScope()) {
     onScopeDispose(() => {
       clearTimeout(timer)
       controller?.abort()
+      unsubscribe?.()
     })
   }
 

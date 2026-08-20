@@ -24,6 +24,7 @@ export function minisearchAdapter(): SearchAdapter {
   let titlesReady: Deferred<void> | undefined
   let nextId = 0
   const pending = new Map<number, Deferred<SearchResponse>>()
+  const invalidateListeners = new Set<() => void>()
 
   function fail(error: unknown): void {
     titlesReady?.reject(error)
@@ -37,6 +38,8 @@ export function minisearchAdapter(): SearchAdapter {
       if (message.tier === 'titles') {
         titlesReady?.resolve()
         titlesReady = undefined
+      } else {
+        for (const listener of invalidateListeners) listener()
       }
     } else if (message.type === 'results') {
       pending.get(message.id)?.resolve(message.response)
@@ -121,6 +124,11 @@ export function minisearchAdapter(): SearchAdapter {
         ctx.signal?.addEventListener('abort', () => void pending.delete(id), { once: true })
         worker!.postMessage({ type: 'search', id, query, limit: ctx.limit } satisfies WorkerRequest)
       })
+    },
+
+    onInvalidate(listener) {
+      invalidateListeners.add(listener)
+      return () => invalidateListeners.delete(listener)
     },
 
     dispose() {

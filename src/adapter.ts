@@ -19,6 +19,12 @@ export interface SearchAdapter {
   load?(ctx: SearchContext): Promise<void> | void
   /** Never called with an empty query. */
   search(query: string, ctx: SearchContext): Promise<SearchResponse> | SearchResponse
+  /**
+   * Register a listener invoked when already-returned results may have
+   * improved (e.g. a richer index tier finished loading); the client
+   * re-runs the active query. Returns an unsubscribe function.
+   */
+  onInvalidate?(listener: () => void): () => void
   dispose?(): void
 }
 
