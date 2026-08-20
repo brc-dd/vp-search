@@ -4,6 +4,10 @@ import { fileURLToPath } from 'node:url'
 import type { Plugin } from 'vite'
 import type { AlgoliaAdapterOptions } from '../adapters/algolia.ts'
 import type { SearchTranslations } from '../translations.ts'
+import { minisearchPlugin } from './minisearch/plugin.ts'
+import type { MinisearchAdapterOptions } from './minisearch/types.ts'
+
+export type { MinisearchAdapterOptions } from './minisearch/types.ts'
 
 const PKG = 'vitepress-any-search'
 
@@ -29,10 +33,17 @@ interface AnySearchSharedOptions {
 
 export type AnySearchPluginOptions =
   | (AnySearchSharedOptions & { provider: 'algolia'; options: AlgoliaAdapterOptions })
+  | (AnySearchSharedOptions & { provider: 'minisearch'; options?: MinisearchAdapterOptions })
   /** Module path whose default export is a constructed `SearchAdapter`. */
   | (AnySearchSharedOptions & { adapterFile: string })
 
-export function anySearch(options: AnySearchPluginOptions): Plugin {
+export function anySearch(options: AnySearchPluginOptions): Plugin[] {
+  const minisearch =
+    'provider' in options && options.provider === 'minisearch' ? (options.options ?? {}) : null
+  return [corePlugin(options), minisearchPlugin(minisearch, PKG)]
+}
+
+function corePlugin(options: AnySearchPluginOptions): Plugin {
   const component = resolveSearchComponent()
   let root = process.cwd()
 
@@ -82,6 +93,12 @@ export function anySearch(options: AnySearchPluginOptions): Plugin {
             ? options.adapterFile
             : resolve(root, options.adapterFile)
           return `export { default } from ${JSON.stringify(slash(file))}\n`
+        }
+        if (options.provider === 'minisearch') {
+          return (
+            `import { minisearchAdapter } from '${PKG}/adapters/minisearch'\n` +
+            `export default minisearchAdapter()\n`
+          )
         }
         return (
           `import { algoliaAdapter } from '${PKG}/adapters/algolia'\n` +

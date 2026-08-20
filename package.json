@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./adapters/algolia": "./src/adapters/algolia.ts",
+    "./adapters/minisearch": "./src/adapters/minisearch/index.ts",
     "./client/*": "./src/client/*",
     "./node": "./src/node/index.ts"
   },
@@ -27,7 +28,9 @@
     }
   },
   "dependencies": {
-    "@vueuse/core": "^14.4.0"
+    "@vueuse/core": "^14.4.0",
+    "linkedom": "^0.18.13",
+    "minisearch": "^7.2.0"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
