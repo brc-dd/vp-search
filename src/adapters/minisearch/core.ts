@@ -14,7 +14,7 @@ const DEFAULT_SEARCH_OPTIONS = {
   boost: { title: 4, text: 2, titles: 1 },
 } satisfies EngineSearchOptions
 
-const DEFAULT_LIMIT = 12
+const DEFAULT_LIMIT = 20
 const CONTEXT_WORDS = 15
 /** CJK has no spaces, so word counting alone would take in a whole section. */
 const CONTEXT_CHARS = 120
