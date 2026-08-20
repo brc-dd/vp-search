@@ -172,9 +172,57 @@ Criteria: covers a distinct architecture cell (remote-API / build-index-local / 
 - **Suggestions/autocomplete** (`autoSuggest`) — separate concern, separate contract if ever.
 - **Ask-AI anything** — out of scope, permanently, per project goals.
 
-## 11. Open questions
+## 11. Local search adapter
+
+### Engine: MiniSearch v7, swappable behind the adapter
+
+Decided against the August 2026 survey (measured on our own docs corpus) and the core issue inventory:
+
+- **MiniSearch**: smallest index at full features (0.51× gzip of source text; titles-only tier 100 KB vs 367 KB full on our corpus), prefix + true Levenshtein fuzzy, field boosting, the ranking VitePress users explicitly praise (#2939 thread), structured-cloneable serialization (clean worker handoff), pluggable tokenizer, excellent types. Ceilings: offsets permanently declined (4 issues; author restated 2025), no phrase search, no shard merging, dormant-but-stable (bus factor 1).
+- **Pagefind**: the architecture benchmark (flat ~137–247 KB to first result at any scale, worker default, charabia CJK better than `Intl.Segmenter`) but no typo tolerance, real-world ranking complaints (exact `<h1>` match ranked third), a ~52 MB native platform binary, `wasm-unsafe-eval`, and a 1-person bus factor with triage 4:1 behind. Future optional adapter for very large sites, not the default.
+- **lunr**: only mature JS engine with offsets-from-index (verified, survives serialization, composes with `Intl.Segmenter`) — but frozen since 2020, positions cost 2× index, lunr-languages is MPL-1.1 with a native-addon Chinese path, and its largest deployment publicly repudiated it.
+- **Orama**: abandoned upstream (team left 2026-02, npm ownership transferred, tagged release unpublished); its fork **zbsearch** has the best CJK ergonomics tested but every plugin (including offsets and vitepress) is uninstallable today (`workspace:*` in published manifests) — re-check ~2026-09. **FlexSearch**: flat query latency but structurally broken highlighting (maintainer-acknowledged), unigram-only CJK, worker+IndexedDB broken, unpublished security fix. Fuzzy tier (Fuse/uFuzzy/fzf): linear scans, not engines. SQLite-FTS5/DuckDB WASM: engine weighs more than competitors' entire solution; sequential B-tree round trips; ruled out with measurements.
+
+The engine sits behind the artifact + worker contracts below, so replacing it (zbsearch later, a positions-bearing custom format, Pagefind for giant sites) does not touch the UI or adapter surface.
+
+### Artifacts
+
+Per locale, emitted as **hashed static assets** (not Vite chunks) under `outDir/any-search/`:
+
+```
+<locale>.titles.<hash>.json    { v: 1, lang, options, index }   // fields: title, titles, group — instant tier
+<locale>.content.<hash>.json   { v: 1, lang, options, index }   // + text and extraFields, storeFields incl. text — lazy tier
+```
+
+`index` is MiniSearch's serialized JSON string; `options` carries only data (fields, storeFields, searchOptions defaults) — tokenizers are code, supplied identically by the worker (never serialized; the #3685 rule). Records: `{ id (site-relative URL with anchor), title, titles, text, group?, kind?, ...extraFields }`, inserted in sorted-route order and self-hashed → byte-identical artifacts for identical content (fixes #4246). The manifest (locale → { lang, tier filenames, section count }) is embedded in `virtual:any-search/local`.
+
+### Worker
+
+The local adapter spawns a module worker (`new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })`; Vite bundles it). Protocol: `init(manifest, base)` → loads the titles tier immediately (search usable), content tier in the background with progress; `search(id, query, ctx)` → full `SearchResponse` — marks are computed **in the worker** via `fromTerms` (matched document terms against stored text; CJK terms come from the same `Intl.Segmenter` tokenizer used at query time), and the excerpt is a windowed `MarkedText` around the first match. Since the shared format is plain JSON, the response crosses `postMessage` untouched. Main-thread adapter is a thin correlation-id wrapper implementing `SearchAdapter`; stale responses are dropped by the client's existing generation guard.
+
+### Indexing (build)
+
+Runs after rendering, not before it: a guarded wrap of `siteConfig.buildEnd` + `transformHtml` capture (the hooks core's own plugin cannot use because its index must be a pre-render Vite chunk). Consequences: dynamic routes are indexed (#2939), Vite `transform` output is indexed (#4979), `$frontmatter` interpolation is indexed (#4934/#3024), `@include`-class bugs can't recur.
+
+- Content extraction: `contentSelector` option, default `main` (semantic, not theme-class-coupled), parsed with a real HTML parser — never regex against anchor markup (#4609's lesson).
+- Sections: split on id-bearing headings; **pre-first-heading prose and heading-less pages index under the page URL** (fixes the silent-drop bug found in #4049's thread); `search: false` frontmatter honored.
+- `group` resolved from the sidebar at index time (ported `getSidebar` path-prefix resolver; #3192/#3230/PR #3440), HTML stripped from labels.
+- `extraFields`: frontmatter fields indexed/stored/boosted by config (#3254).
+- Per-locale via rewritten-path locale bucketing; streaming per-page processing (build already OOMs at 8 GB on huge sites — never accumulate more than one page's DOM).
+- CJK: `Intl.Segmenter` word segmentation by the locale's lang, applied at build and query time by the same code (#4049).
+
+### Dev
+
+`buildEnd` never fires in dev, so dev uses the cheaper core-style path: markdown-renderer-based indexing with per-file re-index on HMR and version-busted middleware serving of the same artifact shapes. Documented fidelity gap: vite-transform/dynamic-route output is only in production indexes.
+
+### Ceilings, recorded honestly
+
+- The content tier is still one artifact per locale — right up to roughly the low thousands of pages. Beyond that: the Pagefind adapter (typo-tolerance tradeoff) or a chunked positions-bearing format (the #5077 / rangefind / docfind direction). Revisit when a real >3k-page site adopts.
+- Term-based marking can miss (measured worst case ~17.5% with aggressive normalization; far lower with our lowercase-only pipeline). A build-time mark-coverage check is cheap insurance; index-derived offsets require changing engines.
+- IndexedDB artifact caching (search-index's measured 4 ms warm-open) is a v1 candidate.
+
+## 12. Open questions
 
 1. Upstream `provider: 'custom'` in VitePress core vs. alias-only shipping — sequencing, and whether core's search UI could itself consume this format someday.
 2. Where the absolute→relative URL rewrite hook lives (`transformResult` on the component vs. adapter option) once the real component exists.
 3. Attribution: keep the `{ label, url }` field with the slot as override, or drop the field and go slot-only with adapters shipping ready-made logo fragments (SVGs are needed for DocSearch's requirement either way)?
-4. Worker offload boundary for local adapters — inside the adapter (worker per backend) or a core-provided worker harness (structured-clone-friendly: the format is already plain JSON).
