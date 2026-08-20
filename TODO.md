@@ -51,7 +51,7 @@ Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); cur
 
 ## 5. Features
 
-- [ ] `/search?q=` page (vuejs/vitepress#2983) + OpenSearch descriptor (#2855); once it exists the navbar trigger becomes a real `<a>` to it that JS intercepts (Ogygia pattern, DESIGN §5)
+- [ ] `/search?q=` page (vuejs/vitepress#2983) + OpenSearch descriptor (#2855) — standalone; the navbar trigger stays a dialog button (trigger-as-link rejected, DESIGN §5)
 - [ ] Exact/AND + quoted-phrase search (#2731) — feasible now: post-filter the content tier's stored text
 - [ ] Warm search on trigger intent: `pointerenter`/`focus` starts the dialog chunk + `adapter.load()` — DESIGN §5
 - [ ] Cap rows per result group in the modal (DESIGN §2 derivation rule)
