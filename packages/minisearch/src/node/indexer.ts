@@ -63,7 +63,7 @@ export function createIndexer(
     cache.clear()
     // Frontmatter is only known after render, so this check lives here rather
     // than in a page filter.
-    if (page.frontmatter.search === false) return void byPage.delete(page.relativePath)
+    if (page.frontmatter['search'] === false) return void byPage.delete(page.relativePath)
 
     const siteData = resolveSiteDataByRoute(siteConfig.site, page.relativePath, page.filePath)
     const locale = siteData.localeIndex ?? 'root'
@@ -229,10 +229,10 @@ function mergeSearchOptions(
   for (const field of options.extraFields ?? []) {
     if (field.boost != null) boost[field.name] = field.boost
   }
-  const userBoost = options.searchOptions?.boost
+  const userBoost = options.searchOptions?.['boost']
   if (userBoost && typeof userBoost === 'object') Object.assign(boost, userBoost)
 
   const merged = { ...options.searchOptions }
-  if (Object.keys(boost).length) merged.boost = boost
+  if (Object.keys(boost).length) merged['boost'] = boost
   return Object.keys(merged).length ? merged : undefined
 }

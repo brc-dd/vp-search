@@ -67,7 +67,7 @@ const groups = computed(() => {
   const byKey = new Map<string, Group>()
   const out: Group[] = []
   for (const result of shownResults.value) {
-    const key = result.group ?? result.url.split('#')[0]
+    const key = result.group ?? result.url.split('#')[0]!
     let group = byKey.get(key)
     if (!group) {
       group = { key, label: result.group ?? textOf(result.titles?.[0] ?? result.title), rows: [] }
@@ -247,7 +247,7 @@ function onMouseMove(event: MouseEvent) {
   mouseSelect.value = true
   const el =
     event.target instanceof Element ? event.target.closest<HTMLElement>('[data-index]') : null
-  if (el) selected.value = Number(el.dataset.index)
+  if (el) selected.value = Number(el.dataset['index'])
 }
 
 function scrollSelectedIntoView() {

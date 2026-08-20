@@ -5,9 +5,27 @@
   "type": "module",
   "description": "MiniSearch local-search provider for @vp-search/core — build-time per-locale index artifacts, queried in a worker.",
   "license": "MIT",
+  "sideEffects": [
+    "**/worker.*"
+  ],
   "exports": {
     ".": "./src/index.ts",
-    "./adapter": "./src/adapter.ts"
+    "./adapter": "./src/adapter.ts",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": "./dist/index.js",
+      "./adapter": "./dist/adapter.js",
+      "./package.json": "./package.json"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p tsconfig.shared.json && tsc -p tsconfig.client.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.node.json"
   },
   "peerDependencies": {
     "@vp-search/core": "workspace:*",

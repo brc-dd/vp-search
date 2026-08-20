@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "paths": {
+      "virtual:vp-search/adapter": ["./src/client/virtual.d.ts"],
+      "virtual:vp-search/options": ["./src/client/virtual.d.ts"]
+    }
+  },
+  "include": ["src", "tsdown.config.ts"]
+}

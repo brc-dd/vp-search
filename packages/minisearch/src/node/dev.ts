@@ -48,11 +48,12 @@ export function createDevIndexer(
   async function indexPage(page: string): Promise<void> {
     const relativePath = siteConfig.rewrites.map[page] ?? page
     const file = path.join(siteConfig.srcDir, page)
+    const { localeIndex } = resolveSiteDataByRoute(siteConfig.site, relativePath, page)
     const env: MarkdownEnv = {
       path: file,
       relativePath,
       cleanUrls: siteConfig.cleanUrls ?? false,
-      localeIndex: resolveSiteDataByRoute(siteConfig.site, relativePath, page).localeIndex,
+      ...(localeIndex != null && { localeIndex }),
     }
 
     let html: string
@@ -104,6 +105,6 @@ export function createDevIndexer(
 }
 
 function pageTitle(env: MarkdownEnv): string {
-  const title = env.frontmatter?.title
-  return typeof title === 'string' ? title : (env.title ?? '')
+  const title = env.frontmatter?.['title']
+  return typeof title === 'string' ? title : (env['title'] ?? '')
 }

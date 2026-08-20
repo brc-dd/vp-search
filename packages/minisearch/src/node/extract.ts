@@ -13,6 +13,24 @@ export interface Section {
 const ELEMENT_NODE = 1
 const TEXT_NODE = 3
 
+/**
+ * The slice of the DOM contract the extractor walks. linkedom's own types
+ * assume the DOM lib (`implements globalThis.Element`), which this node-side
+ * module deliberately does not load.
+ */
+interface NodeLike {
+  nodeType: number
+  nodeValue: string | null
+  textContent: string | null
+  childNodes: Iterable<NodeLike>
+}
+
+interface ElementLike extends NodeLike {
+  tagName: string
+  getAttribute(name: string): string | null
+  classList: { contains(name: string): boolean }
+}
+
 /** Never contributes readable text. */
 const SKIP_TAGS = new Set(['script', 'style', 'noscript', 'template'])
 
@@ -75,7 +93,7 @@ export function splitIntoSections(
     }
   }
 
-  const walk = (node: Node) => {
+  const walk = (node: NodeLike) => {
     for (const child of node.childNodes) {
       if (child.nodeType === TEXT_NODE) {
         current.parts.push(child.nodeValue ?? '')
@@ -83,7 +101,7 @@ export function splitIntoSections(
       }
       if (child.nodeType !== ELEMENT_NODE) continue
 
-      const el = child as Element
+      const el = child as ElementLike
       const tag = el.tagName.toLowerCase()
       if (SKIP_TAGS.has(tag)) continue
 
@@ -117,13 +135,13 @@ export function splitIntoSections(
   return sections
 }
 
-function headingText(heading: Element): string {
+function headingText(heading: ElementLike): string {
   const parts: string[] = []
   for (const child of heading.childNodes) {
     // The permalink `<a>` carries a zero-width space and an aria-label.
     if (
       child.nodeType === ELEMENT_NODE &&
-      (child as Element).classList?.contains('header-anchor')
+      (child as ElementLike).classList?.contains('header-anchor')
     ) {
       continue
     }

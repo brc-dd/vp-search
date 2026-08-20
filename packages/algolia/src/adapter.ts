@@ -57,7 +57,7 @@ export function algoliaAdapter(options: AlgoliaAdapterOptions): SearchAdapter {
     async search(query, ctx) {
       const res = await fetch(`${host}/1/indexes/${options.indexName}/query`, {
         method: 'POST',
-        signal: ctx.signal,
+        signal: ctx.signal ?? null,
         headers: {
           'Content-Type': 'application/json',
           'X-Algolia-Application-Id': options.appId,
@@ -78,11 +78,12 @@ export function algoliaAdapter(options: AlgoliaAdapterOptions): SearchAdapter {
       if (!res.ok) {
         throw new Error(`Algolia request failed: ${res.status} ${await res.text()}`)
       }
-      const data: AlgoliaResponse = await res.json()
+      // DOM types say `any`, @types/node says `unknown` — cast for both.
+      const data = (await res.json()) as AlgoliaResponse
       return {
         results: data.hits.map(toResult),
         total: { count: data.nbHits, exact: data.exhaustiveNbHits ?? true },
-        elapsedMs: data.processingTimeMS,
+        ...(data.processingTimeMS != null && { elapsedMs: data.processingTimeMS }),
       }
     },
   })
@@ -100,12 +101,12 @@ function toResult(hit: DocSearchHit): SearchResult {
     url: hit.url,
     title: marked(own),
     titles: levels.slice(0, levels.indexOf(own)).map(marked),
-    excerpt: hit._snippetResult?.content?.value
-      ? clean(fromTagged(hit._snippetResult.content.value, PRE, POST))
-      : undefined,
-    group: hit.hierarchy.lvl0
-      ? unescapeEntities(hit.hierarchy.lvl0.replaceAll('\u200B', '')).trim()
-      : undefined,
+    ...(hit._snippetResult?.content?.value && {
+      excerpt: clean(fromTagged(hit._snippetResult.content.value, PRE, POST)),
+    }),
+    ...(hit.hierarchy.lvl0 && {
+      group: unescapeEntities(hit.hierarchy.lvl0.replaceAll('\u200B', '')).trim(),
+    }),
     kind: hit.type === 'content' ? 'content' : hit.type === 'lvl1' ? 'page' : 'heading',
     raw: hit,
   }

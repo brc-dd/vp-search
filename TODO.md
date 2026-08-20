@@ -1,6 +1,6 @@
 # Tasks
 
-Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); current state: algolia + minisearch providers shipped and browser-verified in `examples/docs`, split into source-only workspace packages (`@vp-search/core` + `@vp-search/algolia` + `@vp-search/minisearch`).
+Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); current state: algolia + minisearch providers shipped and browser-verified in `examples/docs`, workspace packages (`@vp-search/core` + `@vp-search/algolia` + `@vp-search/minisearch`) with tsdown builds and publish-ready exports (workspace dev still consumes raw source).
 
 ## 1. Meta-plugin split (done 2026-08)
 
@@ -12,13 +12,16 @@ Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); cur
 
 ## 2. Release readiness
 
-- [ ] Build tooling: everything ships as raw TS/SFC today (type-stripping + consumer Vite); needs real builds (tsdown or similar), dist-pointing exports maps, `.d.ts`, SFCs stay raw source per DESIGN §8
+- [x] Build tooling (2026-08): tsdown unbundle builds per package (`tsdown.base.ts`), SFCs stay raw source via vue-sfc-transformer (TS transpiled out, `.d.vue.ts` beside), `.d.ts` for everything; exports stay src for workspace dev, `publishConfig.exports` flips to dist at pack (Nuxt pattern). In-build publint + attw (esm-only, error) + unplugin-unused. No `prepack` scripts — deliberate: attw packs during the build, so a `prepack: tsdown` recurses into a fork bomb; pack/publish flows must run `pnpm build` first
+- [ ] Upstream reports from the build-tooling work:
+  - vue-sfc-transformer (patched locally in `patches/`, drop when released): oxc transpile drops template-only `.vue`/value imports (tsc-style elision, can't see the template) and synthesizes `export {}` in `<script setup>`; fix = `typescript.onlyRemoveTypeImports` + strip trailing `export {}` (repro: `transform('t.ts', "import V from './V.vue'\nconst x = 1", { lang: 'ts' })` via `rolldown/utils`)
+  - pnpm 12 RC: `pnpm pack` writes the pre-POSIX NUL typeflag for regular files (npm and pnpm 11 write `'0'`); breaks minimal tar parsers — @publint/pack 0.1.7 (2026-08-19) already added tolerance on their side, others may not have
 - [ ] CSS split into importable layers (`variables` separate from component styles)
-- [ ] Separate tsconfigs per environment — client (DOM + Vue), node (node types, no DOM lib), shared core (neither, keeping the format/helpers environment-free) and tests — so environment leaks fail typecheck (DOM access in node code, node imports in shared); falls out naturally with per-package tsconfigs/project references in the split, and CI runs each project's typecheck alongside the tests
-- [ ] Move verification harnesses into in-repo vitest suites (worker core fixtures, highlight helpers, useSearch incl. onInvalidate, indexer splitter/determinism) + an e2e over `examples/docs` — seeds preserved in the untracked local `scratch/` dir (all four run green via `node scratch/<name>.ts`); include a marks-slice-the-original-text case for `fromTerms` (slimsearch regression: it marks the raw query string, so display casing is lost)
+- [x] Separate tsconfigs per environment (2026-08): per-package env projects (core shared/client/node, minisearch shared/client/worker/node, algolia client/node) over `tsconfig.base.json`, run by each package's `typecheck` script in CI; cross-runtime globals for the bare-ES shared projects live in `shared-globals.d.ts` (merge-compatible with lib.dom/@types/node). Caught real leaks on first run (AbortSignal/performance, DOM type names in linkedom-consuming node code, DOM-vs-undici `res.json()`). Tests project still to come with the vitest suites; `examples/docs` deliberately stays at upstream strictness (vendored)
+- [ ] Move verification harnesses into in-repo vitest suites (worker core fixtures, highlight helpers, useSearch incl. onInvalidate, indexer splitter/determinism, dist-SFC integrity) + an e2e over `examples/docs` — seeds preserved in the untracked local `scratch/` dir (all run green via `node scratch/<name>.ts`; `validate-sfc.ts` needs `pnpm build` first); include a marks-slice-the-original-text case for `fromTerms` (slimsearch regression: it marks the raw query string, so display casing is lost)
 - [ ] Package-specific changelogs + versioning strategy (changesets fits the workspace) + GitHub tags/releases
 - [ ] npm trusted publishing (OIDC) setup + first publish
-- [ ] `pnpm publish` dry-runs per package (peer ranges, files, exports resolution from dist)
+- [ ] `pnpm publish` dry-runs per package (peer ranges, files, exports resolution from dist) — partially covered since 2026-08: every build publint- and attw-checks the packed tarball; packed-tarball consumer smoke (blank vitepress app, build + search in browser) verified by hand, worth scripting
 - [ ] Pre-ship sweep of modern platform features across CSS/HTML/JS/TS/Node/ESM for progressive improvements — including features beyond the Baseline 2024 floor, adopted behind feature detection / graceful degradation rather than raising the floor. Candidates parked so far, with why:
   - CSS Custom Highlight API — main path needs no DOM post-processing (segments render real `<mark>`s from data); only the tool for the future rendered-HTML excerpt view, and Baseline 2025 (Firefox 140). DESIGN §5.
   - `<search>` element — surfaced in the Baseline pass but unapplied: shell semantics need an a11y review against the dialog + combobox pattern first
@@ -37,7 +40,7 @@ Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); cur
 - [ ] LICENSE file (package.json says MIT; no file exists) — per package after the split
 - [ ] GitHub UI fields: description, topics, website; social preview
 - [ ] Policies: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue/PR templates
-- [ ] CI: typecheck + tests + example build on PR; publish workflow (OIDC)
+- [ ] CI: shipped 2026-08 (`ci.yml`: format + typecheck + package builds incl. publint/attw + example build; actionlint + zizmor; hardened per current practices — pinned SHAs, zero default permissions, pnpm/setup from devEngines); still open: tests once the vitest suites land, publish workflow (OIDC)
 - [ ] Repo polishing pass: README rewrite for the split layout, badges, adapter-authoring guide
 - [ ] Comment-density cleanup across packages: comments are very verbose today; thin them to the load-bearing ones once APIs are stabler (deferred, like the DESIGN.md distill below)
 - [ ] Distill + reorganize DESIGN.md for human readability: keep the format spec, contracts, mapping tables, current architecture, ceilings, and open questions; compress shipped-decision rationale to a line or two (git history keeps the long form); fold survey notes into the sections they justify

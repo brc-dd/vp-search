@@ -5,10 +5,29 @@
   "type": "module",
   "description": "Backend-agnostic search for VitePress — one accessible UI, swappable search providers.",
   "license": "MIT",
+  "sideEffects": [
+    "**/*.vue"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./client/*": "./src/client/*",
-    "./node": "./src/node/index.ts"
+    "./node": "./src/node/index.ts",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": "./dist/index.js",
+      "./client/*": "./dist/client/*",
+      "./node": "./dist/node/index.js",
+      "./package.json": "./package.json"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p tsconfig.shared.json && vue-tsc -p tsconfig.client.json && tsc -p tsconfig.node.json"
   },
   "peerDependencies": {
     "vitepress": "^2.0.0-alpha.1",
@@ -23,8 +42,12 @@
     "@vueuse/core": "^14.4.0"
   },
   "devDependencies": {
+    "@volar/typescript": "^2.4.28",
+    "@vue/language-core": "^3.3.10",
+    "rolldown": "^1.2.5",
     "vite": "^8.2.1",
     "vitepress": "2.0.0-alpha.19",
-    "vue": "^3.5.41"
+    "vue": "^3.5.41",
+    "vue-sfc-transformer": "^0.2.5"
   }
 }

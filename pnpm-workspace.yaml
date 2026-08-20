@@ -1,3 +1,23 @@
 packages:
   - 'packages/*'
   - 'examples/*'
+
+minimumReleaseAge: 1440
+minimumReleaseAgeIgnoreMissingTime: false
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 525600
+blockExoticSubdeps: true
+
+strictDepBuilds: true
+strictPeerDependencies: true
+verifyDepsBeforeRun: install
+
+update:
+  githubActions: true
+
+overrides:
+  esbuild: '-'
+  rolldown: latest
+
+patchedDependencies:
+  vue-sfc-transformer: patches/vue-sfc-transformer.patch

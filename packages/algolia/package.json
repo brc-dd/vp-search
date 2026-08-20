@@ -5,9 +5,25 @@
   "type": "module",
   "description": "Algolia/DocSearch provider for @vp-search/core — plain fetch, no algoliasearch client, no DocSearch UI bundle.",
   "license": "MIT",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./adapter": "./src/adapter.ts"
+    "./adapter": "./src/adapter.ts",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": "./dist/index.js",
+      "./adapter": "./dist/adapter.js",
+      "./package.json": "./package.json"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.client.json"
   },
   "peerDependencies": {
     "@vp-search/core": "workspace:*"

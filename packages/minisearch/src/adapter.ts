@@ -90,7 +90,7 @@ export function minisearchAdapter(): SearchAdapter {
     // already starting rather than re-initializing the worker.
     locale = key
     const { base, locales } = await resolveIndex()
-    const entry = locales[key] ?? locales.root
+    const entry = locales[key] ?? locales['root']
     if (!entry) throw new Error(`${TAG} no search index for locale ${JSON.stringify(key)}`)
     const ready = new Promise<void>((resolve, reject) => {
       titlesReady = { resolve, reject }
@@ -121,7 +121,12 @@ export function minisearchAdapter(): SearchAdapter {
         // Aborted searches are dropped, not rejected: the client's generation
         // guard already ignores whatever a superseded query would return.
         ctx.signal?.addEventListener('abort', () => void pending.delete(id), { once: true })
-        worker!.postMessage({ type: 'search', id, query, limit: ctx.limit } satisfies WorkerRequest)
+        worker!.postMessage({
+          type: 'search',
+          id,
+          query,
+          ...(ctx.limit != null && { limit: ctx.limit }),
+        } satisfies WorkerRequest)
       })
     },
 
