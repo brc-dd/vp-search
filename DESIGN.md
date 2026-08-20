@@ -157,6 +157,46 @@ Single package, subpath exports (the `@docsearch/react` / `meilisearch-docsearch
 
 Single package until an adapter needs its own release cadence or heavy codegen; then that adapter graduates to `@any-search/<backend>` without breaking the import shape.
 
+### 8b. Meta-plugin split (decided 2026-08, executes after the minisearch adapter lands)
+
+The end-state is a **meta plugin**: the core knows how to put a search UI into VitePress and how to plumb a provider through; providers are separate packages anyone can write, and installing one never installs another's dependencies (the minisearch provider's `minisearch`/`linkedom` must not ride along with an Algolia-only install).
+
+Monorepo layout (pnpm workspace already in place): `packages/core` (UI, shared format/types/helpers, translations, the node plugin shell), `packages/algolia` (dep-free), `packages/minisearch` (owns `minisearch`, `linkedom`), future `packages/pagefind` etc., plus `examples/`. Publish naming (scope vs suffix) decided at publish time — private repo for now.
+
+Provider contract (replaces the closed provider union in plugin options):
+
+```ts
+// user config
+anySearch(minisearch({ ... }), { translations, locales })   // provider objects, not strings
+
+// adapter package exports a factory returning:
+interface ProviderDefinition {
+  name: string
+  /** module specifier whose default export is the SearchAdapter; core re-exports it
+   *  through virtual:any-search/adapter (the CSP-safe module-reference shape) */
+  clientModule: string
+  /** JSON-serializable options the client module factory receives via
+   *  virtual:any-search/provider-options */
+  clientOptions?: unknown
+  /** node-side participation, all optional */
+  node?: {
+    setup?(siteConfig: SiteConfig, api: ProviderApi): void
+    configureServer?(server: ViteDevServer, api: ProviderApi): void
+  }
+}
+
+interface ProviderApi {
+  /** guarded, once-only wrapping of siteConfig hooks — core owns the latches */
+  onTransformHtml(cb): void
+  onBuildEnd(cb): void
+  /** namespaced virtual modules: virtual:any-search/<provider>/<id> */
+  addVirtualModule(id: string, load: () => string): void
+  emitAsset(fileName: string, source: string | Uint8Array): void   // outDir/any-search/**
+}
+```
+
+Core keeps: alias hijack + collision warning, `virtual:any-search/{adapter,options}`, optimizeDeps/ssr hygiene, the UI. `adapterFile` survives as the zero-package escape hatch (a bare `ProviderDefinition` with only `clientModule`). Type extension points for third parties: `SearchAdapter`/`SearchResult`/helpers from core's root export, `ProviderDefinition`/`ProviderApi` from `core/node` — a custom provider is one package with a factory and optionally a client module, no core changes.
+
 ## 9. Out-of-the-box adapters (deferred decision)
 
 Criteria: covers a distinct architecture cell (remote-API / build-index-local / post-build-static), no heavy mandatory deps, active upstream, docs-convention support. Current candidates: **algolia** (done — remote, fetch-only), **minisearch** (local, replaces core local search, reuses its index conventions), **pagefind** (post-build static, best large-site story). Meilisearch/Typesense/Orama/FlexSearch mappings are specified above so community adapters are mechanical; a `custom` example shows paid-Algolia-with-own-schema.
@@ -194,7 +234,7 @@ Per locale, emitted as **hashed static assets** (not Vite chunks) under `outDir/
 <locale>.content.<hash>.json   { v: 1, lang, options, index }   // + text and extraFields, storeFields incl. text — lazy tier
 ```
 
-`index` is MiniSearch's serialized JSON string; `options` carries only data (fields, storeFields, searchOptions defaults) — tokenizers are code, supplied identically by the worker (never serialized; the #3685 rule). Records: `{ id (site-relative URL with anchor), title, titles, text, group?, kind?, ...extraFields }`, inserted in sorted-route order and self-hashed → byte-identical artifacts for identical content (fixes #4246). The manifest (locale → { lang, tier filenames, section count }) is embedded in `virtual:any-search/local`.
+`index` is MiniSearch's serialized JSON string; `options` carries only data (fields, storeFields, searchOptions defaults) — tokenizers are code, supplied identically by the worker (never serialized; the #3685 rule). Records: `{ id (site-relative URL with anchor), title, titles, text, group?, kind?, ...extraFields }`, inserted in sorted-route order and self-hashed → byte-identical artifacts for identical content (fixes #4246). The manifest (locale → { lang, tier filenames, section count }) is embedded in `virtual:any-search/minisearch` (inlined in dev; in builds it points at a non-hashed `manifest.json` written at `buildEnd`, since tier filenames aren't known before bundling ends). The provider is named after the engine — `provider: 'minisearch'`, `adapters/minisearch` — not a generic "local": future local engines ship as their own separate providers.
 
 ### Worker
 
