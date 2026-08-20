@@ -27,8 +27,12 @@ export default async function setup(project: TestProject): Promise<() => Promise
   try {
     const browserServer = await chromium.launchServer({
       headless: true,
-      // The GitHub runner's sandbox is unavailable to an unprivileged container.
-      ...(process.env['CI'] && { args: ['--no-sandbox', '--disable-setuid-sandbox'] }),
+      // The GitHub runner's sandbox is unavailable to an unprivileged container,
+      // and renderers crash on /dev/shm exhaustion under the dev-mode load
+      // (two live vite servers) — write shared memory to /tmp instead.
+      ...(process.env['CI'] && {
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      }),
     })
     stops.push(() => browserServer.close())
 

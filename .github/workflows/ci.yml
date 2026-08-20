@@ -25,9 +25,9 @@ env:
 jobs:
   # Compile + publish-shape validation. Owns the lockfile verification.
   check:
-    # ubuntu-24.04 rather than -latest: the suites are ICU-sensitive and 26.04
-    # images are still in preview; move deliberately.
-    runs-on: ubuntu-24.04
+    # ubuntu-26.04 probe: playwright-core 1.62 officially supports it; the image
+    # is still GitHub-preview (no SLA) — evaluating ahead of the -latest repoint.
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     permissions:
       contents: read
@@ -64,7 +64,7 @@ jobs:
 
   # Fast hermetic lane: no build, no browser. Reddest fastest.
   unit:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -85,7 +85,7 @@ jobs:
   # Real browser over the dedicated fixture site, dev and built output — the
   # two paths genuinely diverge (inlined dev locales vs fetched artifacts).
   e2e:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -121,7 +121,7 @@ jobs:
         run: pnpm run "$SCRIPT"
 
   lint-workflows:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -134,7 +134,10 @@ jobs:
           persist-credentials: false
 
       - name: actionlint
-        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+        # temporarily the actively-released rhysd/actionlint fork:
+        # raven-actions bundles a linter whose runner-label DB predates the
+        # ubuntu-26.04 preview label; switch back when upstream catches up
+        uses: kjanat/actionlint@7c5b0a3880b3d29c51072b1e5e0730e5988f8b7d # v1.12.0
 
       - name: zizmor
         uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
