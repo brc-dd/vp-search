@@ -1,6 +1,12 @@
-import { defineSearchAdapter, type SearchAdapter } from '../adapter.ts'
-import { fromTagged, plain, unescapeEntities } from '../highlight.ts'
-import type { MarkedText, SearchResult } from '../types.ts'
+import {
+  defineSearchAdapter,
+  fromTagged,
+  plain,
+  unescapeEntities,
+  type MarkedText,
+  type SearchAdapter,
+  type SearchResult,
+} from '@vp-search/core'
 
 /** Sentinel highlight tags: can't occur in indexed text, no HTML involved. */
 const PRE = '\u0002'
@@ -104,6 +110,9 @@ function toResult(hit: DocSearchHit): SearchResult {
     raw: hit,
   }
 }
+
+/** The client factory `virtual:vp-search/adapter` instantiates. */
+export default algoliaAdapter
 
 /** Crawler text is entity-escaped and headings carry zero-width spaces from
  * heading-anchor markup. */

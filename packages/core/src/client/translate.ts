@@ -1,4 +1,4 @@
-import options from 'virtual:any-search/options'
+import options from 'virtual:vp-search/options'
 import { useData } from 'vitepress'
 import { computed } from 'vue'
 import { createSearchTranslate, type SearchTranslationKey } from '../translations.ts'

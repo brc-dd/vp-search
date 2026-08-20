@@ -1,0 +1,24 @@
+{
+  "name": "@vp-search/minisearch",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MiniSearch local-search provider for @vp-search/core — build-time per-locale index artifacts, queried in a worker.",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./adapter": "./src/adapter.ts"
+  },
+  "peerDependencies": {
+    "@vp-search/core": "workspace:*",
+    "vitepress": "^2.0.0-alpha.1"
+  },
+  "dependencies": {
+    "linkedom": "^0.18.13",
+    "minisearch": "^7.2.0"
+  },
+  "devDependencies": {
+    "@vp-search/core": "workspace:*",
+    "vitepress": "2.0.0-alpha.19"
+  }
+}

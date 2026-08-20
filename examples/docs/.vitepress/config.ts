@@ -9,7 +9,8 @@ import {
   localIconLoader
 } from 'vitepress-plugin-group-icons'
 import llmstxt from 'vitepress-plugin-llms'
-import { anySearch } from 'vitepress-any-search/node'
+import { search } from '@vp-search/core/node'
+import { minisearch } from '@vp-search/minisearch'
 import { markdown as esMarkdown } from '../es/config.ts'
 import { markdown as faMarkdown } from '../fa/config.ts'
 import { markdown as jaMarkdown } from '../ja/config.ts'
@@ -110,8 +111,9 @@ export default defineConfig({
           firebase: 'logos:firebase'
         }
       }),
-      anySearch({ provider: 'minisearch' }),
-      // anySearch({ provider: 'algolia', options: { appId: '8J64VVRP8K', apiKey: '52f578a92b88ad6abde815aae2b0ad7c', indexName: 'vitepress' } }),
+      search(minisearch()),
+      // import { algolia } from '@vp-search/algolia'
+      // search(algolia({ appId: '8J64VVRP8K', apiKey: '52f578a92b88ad6abde815aae2b0ad7c', indexName: 'vitepress' })),
       prod && llmstxt({ workDir: 'en', ignoreFiles: ['index.md'] })
     ]
   },

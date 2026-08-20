@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onKeyStroke } from '@vueuse/core'
-import adapter from 'virtual:any-search/adapter'
+import adapter from 'virtual:vp-search/adapter'
 // not re-exported by `vitepress/theme`, so the button is reused by path rather
 // than by copying its styles
 import VPNavBarSearchButton from 'vitepress/dist/client/theme-default/components/VPNavBarSearchButton.vue'
@@ -43,7 +43,7 @@ onMounted(() => {
   if (!origins?.length) return
   onIdle(() => {
     for (const origin of origins) {
-      const id = `any-search-preconnect-${origin}`
+      const id = `vp-search-preconnect-${origin}`
       if (document.getElementById(id)) continue
       const link = document.createElement('link')
       link.id = id

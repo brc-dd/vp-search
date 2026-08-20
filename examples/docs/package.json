@@ -1,5 +1,5 @@
 {
-  "name": "vitepress-any-search-docs",
+  "name": "vp-search-docs",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,9 @@
     "preview": "vitepress preview"
   },
   "dependencies": {
-    "vitepress-any-search": "workspace:*"
+    "@vp-search/algolia": "workspace:*",
+    "@vp-search/core": "workspace:*",
+    "@vp-search/minisearch": "workspace:*"
   },
   "devDependencies": {
     "markdown-it-mathjax3": "^4.3.2",

@@ -43,7 +43,7 @@ export interface SearchTranslations {
   modal?: SearchModalTranslations
 }
 
-/** Shape of the `virtual:any-search/options` default export. */
+/** Shape of the `virtual:vp-search/options` default export. */
 export interface SearchOptions {
   translations?: SearchTranslations
   /** Keyed by VitePress `localeIndex` ('root', 'zh', …). */

@@ -1,8 +1,7 @@
-import { defineSearchAdapter, type SearchAdapter } from '../../adapter.ts'
-import type { SearchResponse } from '../../types.ts'
+import { defineSearchAdapter, type SearchAdapter, type SearchResponse } from '@vp-search/core'
 import type { LocaleEntry, WorkerRequest, WorkerResponse } from './types.ts'
 
-const TAG = '[any-search]'
+const TAG = '[vp-search]'
 
 type ManifestFile = { locales?: Record<string, LocaleEntry> } & Record<string, unknown>
 
@@ -76,7 +75,7 @@ export function minisearchAdapter(): SearchAdapter {
   }
 
   async function fetchIndex() {
-    const data = (await import('virtual:any-search/minisearch')).default
+    const data = (await import('virtual:vp-search/minisearch/manifest')).default
     if (!data) {
       throw new Error(`${TAG} no search index: the plugin is running another provider.`)
     }
@@ -142,6 +141,9 @@ export function minisearchAdapter(): SearchAdapter {
     },
   })
 }
+
+/** The client factory `virtual:vp-search/adapter` instantiates. */
+export default minisearchAdapter
 
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url)

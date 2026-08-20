@@ -1,0 +1,30 @@
+{
+  "name": "@vp-search/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend-agnostic search for VitePress — one accessible UI, swappable search providers.",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client/*": "./src/client/*",
+    "./node": "./src/node/index.ts"
+  },
+  "peerDependencies": {
+    "vitepress": "^1.6.0 || ^2.0.0-alpha.1",
+    "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "vitepress": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.4.0"
+  },
+  "devDependencies": {
+    "vite": "^8.2.1",
+    "vitepress": "2.0.0-alpha.19",
+    "vue": "^3.5.41"
+  }
+}

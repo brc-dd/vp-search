@@ -1,20 +1,21 @@
 # Tasks
 
-Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); current state: algolia + minisearch providers shipped and browser-verified in `examples/docs`, everything still a single source-only package.
+Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); current state: algolia + minisearch providers shipped and browser-verified in `examples/docs`, split into source-only workspace packages (`@vp-search/core` + `@vp-search/algolia` + `@vp-search/minisearch`).
 
-## 1. Meta-plugin split (next up — everything else layers on it)
+## 1. Meta-plugin split (done 2026-08)
 
-- [ ] Restructure to pnpm workspace packages: `packages/core` (UI, shared format, translations, node plugin shell), `packages/algolia` (dep-free), `packages/minisearch` (owns `minisearch` + `linkedom` — move them out of the root package)
-- [ ] Replace the provider union with the public `ProviderDefinition` / `ProviderApi` contract (DESIGN §8b): `anySearch(minisearch({...}))`, core-owned hook latches, namespaced virtuals, `emitAsset`; keep `adapterFile` escape hatch
-- [ ] Our adapters consume the same public contract a third party would
-- [ ] Decide + reserve publish names (leaning: unscoped `vitepress-any-search` core + `@any-search/*` providers; npm org and GitHub org unreserved)
+- [x] Restructure to pnpm workspace packages: `packages/core` (UI, shared format, translations, node plugin shell), `packages/algolia` (dep-free), `packages/minisearch` (owns `minisearch` + `linkedom` — moved out of the root package)
+- [x] Replace the provider union with the public `ProviderDefinition` / `ProviderApi` contract (DESIGN §8b): `search(minisearch({...}))`, core-owned hook latches, namespaced virtuals, `emitAsset`; `adapterFile` escape hatch kept
+- [x] Our adapters consume the same public contract a third party would
+- [x] Publish names decided: `@vp-search/*` scope, core as `@vp-search/core`
+- [x] Names reserved: `vp-search` npm org claimed; GitHub repo renamed to `brc-dd/vp-search`
 
 ## 2. Release readiness
 
 - [ ] Build tooling: everything ships as raw TS/SFC today (type-stripping + consumer Vite); needs real builds (tsdown or similar), dist-pointing exports maps, `.d.ts`, SFCs stay raw source per DESIGN §8
 - [ ] CSS split into importable layers (`variables` separate from component styles)
 - [ ] Separate tsconfigs per environment — client (DOM + Vue), node (node types, no DOM lib), shared core (neither, keeping the format/helpers environment-free) and tests — so environment leaks fail typecheck (DOM access in node code, node imports in shared); falls out naturally with per-package tsconfigs/project references in the split, and CI runs each project's typecheck alongside the tests
-- [ ] Move verification harnesses into in-repo vitest suites (worker core fixtures, highlight helpers, useSearch incl. onInvalidate, indexer splitter/determinism) + an e2e over `examples/docs` — seeds preserved in [scratch/](scratch/) (all four run green via `node scratch/<name>.ts`)
+- [ ] Move verification harnesses into in-repo vitest suites (worker core fixtures, highlight helpers, useSearch incl. onInvalidate, indexer splitter/determinism) + an e2e over `examples/docs` — seeds preserved in the untracked local `scratch/` dir (all four run green via `node scratch/<name>.ts`)
 - [ ] Package-specific changelogs + versioning strategy (changesets fits the workspace) + GitHub tags/releases
 - [ ] npm trusted publishing (OIDC) setup + first publish
 - [ ] `pnpm publish` dry-runs per package (peer ranges, files, exports resolution from dist)

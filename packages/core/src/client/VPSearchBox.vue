@@ -15,7 +15,7 @@ const { adapter, open } = defineProps<{ adapter: SearchAdapter; open: boolean }>
 const emit = defineEmits<{ close: [] }>()
 
 const LIMIT = 12
-const QUERY_KEY = 'vitepress-any-search:query'
+const QUERY_KEY = 'vp-search:query'
 /** Long enough that a fast backend never flashes the spinner. */
 const BUSY_DELAY = 300
 
@@ -127,7 +127,7 @@ watch(busy, (value) => {
 onScopeDispose(() => clearTimeout(busyTimer))
 
 watch(error, (value) => {
-  if (value) console.error('[vitepress-any-search]', value)
+  if (value) console.error('[vp-search]', value)
 })
 
 const announcement = ref('')

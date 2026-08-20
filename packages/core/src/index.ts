@@ -7,9 +7,9 @@ export {
   fromTagged,
   fromRanges,
   fromTerms,
+  unescapeEntities,
   type HighlightRange,
 } from './highlight.ts'
-export { algoliaAdapter, type AlgoliaAdapterOptions } from './adapters/algolia.ts'
 export {
   createSearchTranslate,
   defaultTranslations,

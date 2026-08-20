@@ -7,16 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@vueuse/core':
-        specifier: ^14.4.0
-        version: 14.4.0(vue@3.5.41(typescript@6.0.3))
-      linkedom:
-        specifier: ^0.18.13
-        version: 0.18.13
-      minisearch:
-        specifier: ^7.2.0
-        version: 7.2.0
     devDependencies:
       '@types/node':
         specifier: ^26.2.0
@@ -27,24 +17,21 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
-      vite:
-        specifier: ^8.2.1
-        version: 8.2.1(@types/node@26.2.0)
-      vitepress:
-        specifier: 2.0.0-alpha.19
-        version: 2.0.0-alpha.19(@types/node@26.2.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.26)(typescript@6.0.3)
-      vue:
-        specifier: ^3.5.41
-        version: 3.5.41(typescript@6.0.3)
       vue-tsc:
         specifier: ^3.3.10
         version: 3.3.10(typescript@6.0.3)
 
   examples/docs:
     dependencies:
-      vitepress-any-search:
+      '@vp-search/algolia':
         specifier: workspace:*
-        version: link:../..
+        version: link:../../packages/algolia
+      '@vp-search/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@vp-search/minisearch':
+        specifier: workspace:*
+        version: link:../../packages/minisearch
     devDependencies:
       markdown-it-mathjax3:
         specifier: ^4.3.2
@@ -64,6 +51,44 @@ importers:
       vue:
         specifier: ^3.5
         version: 3.5.41(typescript@6.0.3)
+
+  packages/algolia:
+    devDependencies:
+      '@vp-search/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/core:
+    dependencies:
+      '@vueuse/core':
+        specifier: ^14.4.0
+        version: 14.4.0(vue@3.5.41(typescript@6.0.3))
+    devDependencies:
+      vite:
+        specifier: ^8.2.1
+        version: 8.2.1(@types/node@26.2.0)
+      vitepress:
+        specifier: 2.0.0-alpha.19
+        version: 2.0.0-alpha.19(@types/node@26.2.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.26)(typescript@6.0.3)
+      vue:
+        specifier: ^3.5.41
+        version: 3.5.41(typescript@6.0.3)
+
+  packages/minisearch:
+    dependencies:
+      linkedom:
+        specifier: ^0.18.13
+        version: 0.18.13
+      minisearch:
+        specifier: ^7.2.0
+        version: 7.2.0
+    devDependencies:
+      '@vp-search/core':
+        specifier: workspace:*
+        version: link:../core
+      vitepress:
+        specifier: 2.0.0-alpha.19
+        version: 2.0.0-alpha.19(@types/node@26.2.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.26)(typescript@6.0.3)
 
 packages:
 

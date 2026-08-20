@@ -1,5 +1,5 @@
+import type { ResultKind, SearchResponse } from '@vp-search/core'
 import type { SearchOptions as EngineSearchOptions } from 'minisearch'
-import type { ResultKind, SearchResponse } from '../../types.ts'
 
 /** One locale's artifact pair. Tier values are URLs relative to the site base. */
 export interface LocaleEntry {
@@ -10,8 +10,9 @@ export interface LocaleEntry {
 }
 
 /**
- * Default export of `virtual:any-search/minisearch`. Dev inlines `locales`;
- * a build leaves it null and points `manifest` at the same record on disk.
+ * Default export of `virtual:vp-search/minisearch/manifest`. Dev inlines
+ * `locales`; a build leaves it null and points `manifest` at the same record
+ * on disk.
  */
 export interface IndexData {
   base: string

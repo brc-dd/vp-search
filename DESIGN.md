@@ -15,7 +15,7 @@ Across nine backends, only four things exist everywhere: an id-ish handle, an or
 
 So the format is: a **required core every backend can fill**, plus optional fields that degrade gracefully, plus `raw` as the escape hatch (the pattern every serious adapter layer uses — Typesense's `_rawTypesenseHit`, InstantSearch's `results`).
 
-## 2. The result shape ([types.ts](src/types.ts))
+## 2. The result shape ([types.ts](packages/core/src/types.ts))
 
 ```ts
 interface SearchResult {
@@ -42,7 +42,7 @@ type MarkedText = { text: string; mark?: boolean }[]
 ```
 
 - **Not HTML strings**: every tag-wrapped format in the survey has scars — InstantSearch's escape-then-reinject dance with an `__escaped` idempotence flag, `dangerouslySetInnerHTML` in DocSearch's Snippet, Nuxt UI hand-escaping `<`/`>` then re-allowing `<mark>`. InstantSearch deprecated its string-returning `highlight()`/`snippet()` helpers and moved to `Array<{ value, isHighlighted }>` parts — this format, arrived at the hard way. Segments make XSS impossible by construction (the UI renders text nodes), keep mark styling/classes in the UI, and give screen-reader/plain output for free (`textOf`).
-- **Not positions as the primary contract**: three backends (Algolia, Typesense, FlexSearch) cannot produce positions without parsing tags back out, and position _units_ are a minefield — Meilisearch reports UTF-8 **byte** offsets, Fuse and @orama/highlight report **inclusive** ends, Lunr reports `[start, length]`, Pagefind reports **word indices**. Positions exist only as adapter-internal input, normalized by [highlight.ts](src/highlight.ts) at the boundary.
+- **Not positions as the primary contract**: three backends (Algolia, Typesense, FlexSearch) cannot produce positions without parsing tags back out, and position _units_ are a minefield — Meilisearch reports UTF-8 **byte** offsets, Fuse and @orama/highlight report **inclusive** ends, Lunr reports `[start, length]`, Pagefind reports **word indices**. Positions exist only as adapter-internal input, normalized by [highlight.ts](packages/core/src/highlight.ts) at the boundary.
 
 Everything displayable (`title`, `titles`, `excerpt`) is `MarkedText`, because backends highlight breadcrumbs too (DocSearch `_highlightResult.hierarchy`) and the live check confirmed marks inside ancestor crumbs. Adapters produce segments via three helpers covering all four backend styles:
 
@@ -68,7 +68,7 @@ Anchor included, href-ready — the id-as-URL trick VitePress bakes in at build 
 
 Tri-state: present-and-exact, present-and-estimated (Meilisearch `estimatedTotalHits`, don't render "1–10 of 47" as fact), absent (FlexSearch, which also silently caps at `limit: 100`). Collapsing these lies to users.
 
-## 3. Adapter contract ([adapter.ts](src/adapter.ts))
+## 3. Adapter contract ([adapter.ts](packages/core/src/adapter.ts))
 
 ```ts
 interface SearchAdapter {
@@ -88,14 +88,14 @@ interface SearchAdapter {
 - `attribution` is **backend-declared, per-adapter** — never a global toggle. The `powered-by` slot's default content renders it when the adapter provides one; no attribution, nothing rendered. The ToS driver: the free DocSearch program contractually requires visible "Search by Algolia" branding (the logo, not just text) while Pagefind/Typesense/Meilisearch/Orama are MIT with none — so the slot override is where the official SVG asset goes. Open (§11): whether the data field survives at all, vs. slot-only with adapters shipping ready-made logo fragments.
 - `SearchContext` carries `localeIndex` + `lang` (adapters translate: Algolia `facetFilters: lang:*` — core strips and re-injects these, same convention; local adapters pick the per-locale index), `limit`, `signal`. Future scope tags (version filtering, Docusaurus-style neutral tags → per-backend translation) would extend context, not results.
 
-The Algolia adapter ([adapters/algolia.ts](src/adapters/algolia.ts)) is implemented as format validation: plain `fetch` against the REST API (no `algoliasearch`, no Preact — the entire DocSearch UI dependency disappears), sentinel highlight tags, DocSearch-record mapping with `\u200B` cleanup (crawled headings carry zero-width spaces from anchor markup). Verified live against the public `vitepress` index: [examples/algolia-live.ts](examples/algolia-live.ts).
+The Algolia adapter ([packages/algolia/src/adapter.ts](packages/algolia/src/adapter.ts)) is implemented as format validation: plain `fetch` against the REST API (no `algoliasearch`, no Preact — the entire DocSearch UI dependency disappears), sentinel highlight tags, DocSearch-record mapping with `\u200B` cleanup (crawled headings carry zero-width spaces from anchor markup). Verified live against the public `vitepress` index: `scratch/algolia-live.ts` (untracked local harness).
 
 ### Where adapters run
 
 Adapters are Vue-free and DOM-free by contract: plain data in, promises out, and every environment effect inside `load()`/`search()` — never at module scope — so importing any adapter is SSR-safe by construction. Coupling then comes in three tiers:
 
 - **Environment-agnostic** (Algolia, Meilisearch, Typesense — anything speaking HTTP): just `fetch`. Runs in Node too, which is what makes the live example possible.
-- **Build-coupled** (MiniSearch and other index-shipping locals): `load()` imports the per-locale index from a `virtual:any-search/*` module, so the adapter resolves only inside a Vite build that includes our node plugin. Still no DOM.
+- **Build-coupled** (MiniSearch and other index-shipping locals): `load()` imports the per-locale index from a `virtual:vp-search/*` module, so the adapter resolves only inside a Vite build that includes our node plugin. Still no DOM.
 - **Browser-only** (Pagefind): `load()` imports `/pagefind/pagefind.js` from the deployed site (WASM + chunk fetches relative to the page), needs the site `base`, and has no dev-mode index — the UI must say so instead of silently returning nothing.
 
 Client-specific responsibilities stay in the client layer, never in adapters: preconnect `<link>` injection (adapters only declare origins), SPA navigation (`router.go` on the rendered anchor), query/state persistence, locale reactivity (context is re-read per query), and rendered-excerpt harvesting à la core's detailed view (mounting page components is a client-layer feature layered on top). When an adapter needs site config — Pagefind's `base` — it arrives via adapter options or a `SearchContext` extension, not by the adapter importing VitePress runtime modules.
@@ -115,7 +115,7 @@ Client-specific responsibilities stay in the client layer, never in adapters: pr
 
 ## 5. Client-side considerations
 
-What [useSearch.ts](src/client/useSearch.ts) already wires: debounce (200ms default), memoized `load`, abort + generation-counter staleness guard (both needed; VitePress's `initializeCount` and `onCleanup` patterns), reset-`load`-on-error so a transient failure doesn't brick search, scope-disposal cleanup.
+What [useSearch.ts](packages/core/src/client/useSearch.ts) already wires: debounce (200ms default), memoized `load`, abort + generation-counter staleness guard (both needed; VitePress's `initializeCount` and `onCleanup` patterns), reset-`load`-on-error so a transient failure doesn't brick search, scope-disposal cleanup.
 
 For the real component phase (recorded here from the source-level a11y audit of `VPLocalSearchBox`):
 
@@ -132,7 +132,7 @@ The corpus/envelope seam, stated by the prior art (Nuxt's `SearchResult = Sectio
 - Corpus record follows the convergent shape: `{ id, title, titles, text }` (+ optional `level`, Nuxt's one addition). VitePress bakes final URLs into `id` at build time (base + rewrites + `cleanUrls` + index-stripping) — keep exactly that; it's why the client never assembles URLs.
 - **Index from the configured renderer**, not a bare `new MarkdownIt()` (the Orama plugin's fidelity bug: containers/code-groups vanish) and not scraped built HTML selectors (Typesense plugin's coupling; unavailable in dev). Core's `_render`/`_splitIntoSections` hooks are the model; upstream issues to watch: #4979 (indexing runs before other plugins' transforms), #2812 (`@include` missed).
 - Honor `search: false` frontmatter (core's convention — post-render check, since frontmatter populates during render; the Pagefind plugin inventing `pagefind-indexed: false` fragmented this). Handle `dynamicRoutes` (core doesn't, #2939 — the Pagefind plugin does).
-- Virtual modules, namespaced `virtual:any-search/*` (two existing plugins already collide on `virtual:search-data`): root module = map of per-locale lazy-import thunks; per-locale module = the serialized index (double-`JSON.stringify` for MiniSearch's string contract); dev HMR per changed file with a `?v=` cache-buster (browser module cache serves stale indexes otherwise — core fixed this the hard way); stub modules when unused so imports never 404.
+- Virtual modules, namespaced `virtual:vp-search/*` (two existing plugins already collide on `virtual:search-data`): root module = map of per-locale lazy-import thunks; per-locale module = the serialized index (double-`JSON.stringify` for MiniSearch's string contract); dev HMR per changed file with a `?v=` cache-buster (browser module cache serves stale indexes otherwise — core fixed this the hard way); stub modules when unused so imports never 404.
 - Post-build backends (Pagefind) hook `buildEnd` **once, guarded** — three plugins monkey-patch it with hand-rolled re-entry latches; use Pagefind's Node API over its CLI (Starlight's approach).
 - Config crossing node→client where functions are involved: the two-shape union that Typesense's plugin and `starlight-docsearch` converged on independently — inline JSON-serializable object, or a module path re-exported through the virtual module. Never `fnSerialize`/`new Function` (needs CSP `unsafe-eval`). Note our adapters mostly dodge this: they're constructed in **theme code** (client side), so options keep closures naturally; only indexer options cross the boundary.
 - `optimizeDeps.include` for client deps (`minisearch` etc.) — core does, no community plugin does, dev cold-open waterfalls result.
@@ -146,56 +146,62 @@ Plan: ship the alias-based vite plugin (covering **both** specifiers, with expli
 
 ## 8. Packaging
 
-Single package, subpath exports (the `@docsearch/react` / `meilisearch-docsearch` granularity precedent):
+One package per concern under the `@vp-search/*` scope (started as a single package with subpath exports — the `@docsearch/react` / `meilisearch-docsearch` granularity precedent — split per §8b once the second provider landed):
 
-- `.` — types, helpers, `defineSearchAdapter` (server-safe, zero deps)
-- `./adapters/*` — one entry per backend; backend SDKs as **optional peers**, dynamically imported inside `load()` (the Orama plugin is the object lesson against bundling: a second UI runtime plus two engine copies in consumers' bundles)
-- `./client` — Vue components, shipped as **raw SFC source** compiled by the consumer's Vite (ecosystem consensus; inherits the user's Vue + scoped-CSS handling)
-- `./node` — the vite plugin + indexers (later)
-- CSS split into importable layers (`variables` separately from component styles) when the real UI lands
-- Peers: `vue` (and `vitepress` optional) with ranges — every incumbent got peer direction wrong somewhere
+- `@vp-search/core` — `.` types, helpers, `defineSearchAdapter` (server-safe, zero backend deps); `./client/*` Vue components, shipped as **raw SFC source** compiled by the consumer's Vite (ecosystem consensus; inherits the user's Vue + scoped-CSS handling); `./node` the `search()` vite plugin + provider contract
+- `@vp-search/<provider>` — `.` the provider factory (node-side); `./adapter` the client adapter module. Backend SDKs are the provider package's own deps (or optional peers dynamically imported inside `load()` for heavy ones — the Orama plugin is the object lesson against bundling: a second UI runtime plus two engine copies in consumers' bundles)
+- CSS split into importable layers (`variables` separately from component styles) when builds land
+- Peers: `vue` (and `vitepress` optional) with ranges on core; providers peer on `@vp-search/core` — every incumbent got peer direction wrong somewhere
 
-Single package until an adapter needs its own release cadence or heavy codegen; then that adapter graduates to `@any-search/<backend>` without breaking the import shape.
-
-### 8b. Meta-plugin split (decided 2026-08, executes after the minisearch adapter lands)
+### 8b. Meta-plugin split (decided 2026-08, executed 2026-08 after the minisearch adapter landed)
 
 The end-state is a **meta plugin**: the core knows how to put a search UI into VitePress and how to plumb a provider through; providers are separate packages anyone can write, and installing one never installs another's dependencies (the minisearch provider's `minisearch`/`linkedom` must not ride along with an Algolia-only install).
 
-Monorepo layout (pnpm workspace already in place): `packages/core` (UI, shared format/types/helpers, translations, the node plugin shell), `packages/algolia` (dep-free), `packages/minisearch` (owns `minisearch`, `linkedom`), future `packages/pagefind` etc., plus `examples/`. Publish naming (scope vs suffix) decided at publish time — private repo for now.
+Monorepo layout (pnpm workspace): `packages/core` (UI, shared format/types/helpers, translations, the node plugin shell), `packages/algolia` (dep-free), `packages/minisearch` (owns `minisearch`, `linkedom`), future `packages/pagefind` etc., plus `examples/`. Publish naming decided with the split: the `@vp-search/*` scope, core as `@vp-search/core`.
 
-Provider contract (replaces the closed provider union in plugin options):
+Provider contract (replaced the closed provider union in plugin options), as implemented in [core/node](packages/core/src/node/index.ts):
 
 ```ts
 // user config
-anySearch(minisearch({ ... }), { translations, locales })   // provider objects, not strings
+search(minisearch({ ... }), { translations, locales })   // provider objects, not strings
 
-// adapter package exports a factory returning:
+// provider package exports a factory returning:
 interface ProviderDefinition {
   name: string
-  /** module specifier whose default export is the SearchAdapter; core re-exports it
-   *  through virtual:any-search/adapter (the CSP-safe module-reference shape) */
+  /** module specifier whose default export is a factory (clientOptions) => SearchAdapter;
+   *  core instantiates it through virtual:vp-search/adapter (the CSP-safe
+   *  module-reference shape) */
   clientModule: string
-  /** JSON-serializable options the client module factory receives via
-   *  virtual:any-search/provider-options */
+  /** JSON-serializable options the client factory receives via
+   *  virtual:vp-search/provider-options */
   clientOptions?: unknown
+  /** bare packages clientModule imports at runtime — core turns them into
+   *  optimizeDeps.include chains so the dev cold-open doesn't waterfall */
+  clientDeps?: string[]
   /** node-side participation, all optional */
   node?: {
     setup?(siteConfig: SiteConfig, api: ProviderApi): void
     configureServer?(server: ViteDevServer, api: ProviderApi): void
+    /** dev-only; returned ids are invalidated + pushed to clients */
+    hotUpdate?(file: string, api: ProviderApi): Promise<string[] | void> | string[] | void
   }
 }
 
 interface ProviderApi {
+  dev: boolean
+  assetsBase: string  // public URL prefix of emitAsset files
   /** guarded, once-only wrapping of siteConfig hooks — core owns the latches */
-  onTransformHtml(cb): void
-  onBuildEnd(cb): void
-  /** namespaced virtual modules: virtual:any-search/<provider>/<id> */
-  addVirtualModule(id: string, load: () => string): void
-  emitAsset(fileName: string, source: string | Uint8Array): void   // outDir/any-search/**
+  onTransformHtml(cb: (page: ProviderPage) => void): void
+  onBuildEnd(cb: () => Promise<void> | void): void
+  /** namespaced virtual modules: virtual:vp-search/<provider>/<id>;
+   *  unregistered ids in the namespace load as null stubs so an inactive
+   *  provider's imports never 404 */
+  addVirtualModule(id: string, load: () => string | Promise<string>): void
+  emitAsset(fileName: string, source: string | Uint8Array): Promise<void>   // outDir/vp-search/**
 }
 ```
 
-Core keeps: alias hijack + collision warning, `virtual:any-search/{adapter,options}`, optimizeDeps/ssr hygiene, the UI. `adapterFile` survives as the zero-package escape hatch (a bare `ProviderDefinition` with only `clientModule`). Type extension points for third parties: `SearchAdapter`/`SearchResult`/helpers from core's root export, `ProviderDefinition`/`ProviderApi` from `core/node` — a custom provider is one package with a factory and optionally a client module, no core changes.
+Core keeps: alias hijack + collision warning, `virtual:vp-search/{adapter,options,provider-options}`, optimizeDeps/ssr hygiene (core + the provider package, derived from `clientModule`), the UI. `adapterFile` survives as the zero-package escape hatch — `search({ adapterFile })`, a module whose default export is a constructed `SearchAdapter` (re-exported directly, no factory call). Type extension points for third parties: `SearchAdapter`/`SearchResult`/helpers from core's root export, `ProviderDefinition`/`ProviderApi` from `@vp-search/core/node` — a custom provider is one package with a factory and a client module, no core changes. Both in-repo providers consume exactly this public contract.
 
 ## 9. Out-of-the-box adapters (deferred decision)
 
@@ -227,14 +233,14 @@ The engine sits behind the artifact + worker contracts below, so replacing it (z
 
 ### Artifacts
 
-Per locale, emitted as **hashed static assets** (not Vite chunks) under `outDir/any-search/`:
+Per locale, emitted as **hashed static assets** (not Vite chunks) under `outDir/vp-search/`:
 
 ```
 <locale>.titles.<hash>.json    { v: 1, lang, options, index }   // fields: title, titles, group — instant tier
 <locale>.content.<hash>.json   { v: 1, lang, options, index }   // + text and extraFields, storeFields incl. text — lazy tier
 ```
 
-`index` is MiniSearch's serialized JSON string; `options` carries only data (fields, storeFields, searchOptions defaults) — tokenizers are code, supplied identically by the worker (never serialized; the #3685 rule). Records: `{ id (site-relative URL with anchor), title, titles, text, group?, kind?, ...extraFields }`, inserted in sorted-route order and self-hashed → byte-identical artifacts for identical content (fixes #4246). The manifest (locale → { lang, tier filenames, section count }) is embedded in `virtual:any-search/minisearch` (inlined in dev; in builds it points at a non-hashed `manifest.json` written at `buildEnd`, since tier filenames aren't known before bundling ends). The provider is named after the engine — `provider: 'minisearch'`, `adapters/minisearch` — not a generic "local": future local engines ship as their own separate providers.
+`index` is MiniSearch's serialized JSON string; `options` carries only data (fields, storeFields, searchOptions defaults) — tokenizers are code, supplied identically by the worker (never serialized; the #3685 rule). Records: `{ id (site-relative URL with anchor), title, titles, text, group?, kind?, ...extraFields }`, inserted in sorted-route order and self-hashed → byte-identical artifacts for identical content (fixes #4246). The manifest (locale → { lang, tier filenames, section count }) is embedded in `virtual:vp-search/minisearch/manifest` (inlined in dev; in builds it points at a non-hashed `manifest.json` written at `buildEnd`, since tier filenames aren't known before bundling ends). The provider is named after the engine — `minisearch()` from `@vp-search/minisearch` — not a generic "local": future local engines ship as their own separate providers.
 
 ### Worker
 

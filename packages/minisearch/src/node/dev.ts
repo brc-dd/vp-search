@@ -29,7 +29,6 @@ export interface DevIndexer {
 export function createDevIndexer(
   siteConfig: SiteConfig<DefaultTheme.Config>,
   indexer: Indexer,
-  publicDir: string,
 ): DevIndexer {
   let renderer: Promise<MarkdownRenderer> | undefined
   let scan: Promise<void> | undefined
@@ -42,7 +41,7 @@ export function createDevIndexer(
       mergeMarkdownLocales(siteConfig.markdown, siteConfig.site.locales),
       siteConfig.site.base,
       siteConfig.logger,
-      publicDir,
+      siteConfig.publicDir,
     ))
   }
 
@@ -63,7 +62,7 @@ export function createDevIndexer(
       // A page that fails to render must not take the dev server down; its own
       // markdown transform already surfaces the error.
       siteConfig.logger.warn(
-        `[vitepress-any-search] failed to index ${page} for search: ${(error as Error).message}`,
+        `[vp-search] minisearch failed to index ${page}: ${(error as Error).message}`,
       )
       return
     }

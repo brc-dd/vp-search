@@ -1,10 +1,9 @@
+import { fromTerms, type MarkedText, type SearchResponse, type SearchResult } from '@vp-search/core'
 import MiniSearch, {
   type SearchOptions as EngineSearchOptions,
   type SearchResult as EngineResult,
 } from 'minisearch'
-import { fromTerms } from '../../highlight.ts'
-import { createTokenizer } from '../../local/tokenize.ts'
-import type { MarkedText, SearchResponse, SearchResult } from '../../types.ts'
+import { createTokenizer } from './tokenize.ts'
 import type { Artifact, IndexRecord } from './types.ts'
 
 /** VitePress local-search parity; the artifact's own options win over these. */

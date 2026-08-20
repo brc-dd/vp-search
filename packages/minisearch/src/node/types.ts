@@ -6,7 +6,7 @@ export interface MinisearchExtraField {
   boost?: number
 }
 
-export interface MinisearchAdapterOptions {
+export interface MinisearchProviderOptions {
   /** CSS selector for the indexable region of a rendered page. */
   contentSelector?: string
   /** Frontmatter fields to index alongside the body text. */
@@ -54,7 +54,6 @@ export interface ManifestLocale {
 
 export type Manifest = Record<string, ManifestLocale>
 
-export const OUT_SUBDIR = 'any-search'
 export const MANIFEST_NAME = 'manifest.json'
 /** Dev artifacts are server-generated, so they get vite's synthetic-path mark. */
-export const DEV_SUBDIR = '@any-search'
+export const DEV_SUBDIR = '@vp-search'

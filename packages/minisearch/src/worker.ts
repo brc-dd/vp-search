@@ -1,4 +1,4 @@
-import { loadTier, runSearch, type TierState } from './core.ts'
+import { loadTier, runSearch, type TierState } from './engine.ts'
 import type {
   Artifact,
   InitRequest,

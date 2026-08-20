@@ -1,19 +1,17 @@
 import MiniSearch from 'minisearch'
 import { createHash } from 'node:crypto'
-import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { resolveSiteDataByRoute, type DefaultTheme, type SiteConfig } from 'vitepress'
-import { createTokenizer } from '../../local/tokenize.ts'
+import { createTokenizer } from '../tokenize.ts'
 import { splitIntoSections } from './extract.ts'
 import { resolveGroup } from './sidebar.ts'
 import {
   MANIFEST_NAME,
-  OUT_SUBDIR,
   type Artifact,
   type IndexRecord,
   type Manifest,
   type ManifestLocale,
-  type MinisearchAdapterOptions,
+  type MinisearchProviderOptions,
   type Tier,
 } from './types.ts'
 
@@ -27,6 +25,9 @@ export interface PageInput {
   html: string
 }
 
+/** Writes one build asset; the provider passes `ProviderApi.emitAsset`. */
+export type EmitAsset = (fileName: string, source: string) => Promise<void>
+
 export interface Indexer {
   index(page: PageInput, fallbackToBody?: boolean): void
   remove(relativePath: string): void
@@ -34,7 +35,7 @@ export interface Indexer {
   lang(locale: string): string
   sections(locale: string): number
   artifact(locale: string, tier: Tier): string
-  write(outDir: string): Promise<Manifest>
+  write(emit: EmitAsset): Promise<Manifest>
 }
 
 interface PageEntry {
@@ -47,7 +48,7 @@ const TITLES_STORE = ['title', 'titles', 'group', 'kind']
 
 export function createIndexer(
   siteConfig: SiteConfig<DefaultTheme.Config>,
-  options: MinisearchAdapterOptions,
+  options: MinisearchProviderOptions,
 ): Indexer {
   const contentSelector = options.contentSelector ?? 'main'
   const extraFields = options.extraFields ?? []
@@ -154,10 +155,7 @@ export function createIndexer(
     return json
   }
 
-  async function write(outDir: string): Promise<Manifest> {
-    const dir = path.join(outDir, OUT_SUBDIR)
-    await mkdir(dir, { recursive: true })
-
+  async function write(emit: EmitAsset): Promise<Manifest> {
     const manifest: Manifest = {}
     for (const locale of locales()) {
       const entry: Partial<ManifestLocale> = {
@@ -167,7 +165,7 @@ export function createIndexer(
       for (const tier of ['titles', 'content'] as const) {
         const json = artifact(locale, tier)
         const name = `${locale}.${tier}.${hash(json)}.json`
-        await writeFile(path.join(dir, name), json)
+        await emit(name, json)
         entry[tier] = name
       }
       manifest[locale] = entry as ManifestLocale
@@ -175,7 +173,7 @@ export function createIndexer(
 
     // Hashed tiers are immutable; the manifest is the one file that must not
     // be cached across deploys.
-    await writeFile(path.join(dir, MANIFEST_NAME), JSON.stringify(manifest))
+    await emit(MANIFEST_NAME, JSON.stringify(manifest))
     return manifest
   }
 
@@ -225,7 +223,7 @@ function pickExtras(frontmatter: Record<string, unknown>, names: string[]): Reco
 }
 
 function mergeSearchOptions(
-  options: MinisearchAdapterOptions,
+  options: MinisearchProviderOptions,
 ): Record<string, unknown> | undefined {
   const boost: Record<string, unknown> = {}
   for (const field of options.extraFields ?? []) {
