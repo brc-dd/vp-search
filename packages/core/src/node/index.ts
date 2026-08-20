@@ -74,10 +74,13 @@ export interface ProviderDefinition {
   /** Provider identifier; namespaces its virtual modules and log lines. */
   name: string
   /**
-   * Module specifier whose default export is a factory taking `clientOptions`
-   * and returning the `SearchAdapter`. Core instantiates it through
+   * Module whose default export is a factory taking `clientOptions` and
+   * returning the `SearchAdapter`. Core instantiates it through
    * `virtual:vp-search/adapter` — a module reference, so no CSP-hostile
-   * function serialization crosses node → client.
+   * function serialization crosses node → client. Usually a bare package
+   * specifier; a `virtual:` id (provided by another vite plugin) or a file
+   * path (relative ones resolve against the VitePress project root) works
+   * too.
    */
   clientModule: string
   /** JSON-serializable argument for the client factory. */
@@ -101,18 +104,15 @@ export interface ProviderDefinition {
   }
 }
 
-export type SearchProvider =
-  | ProviderDefinition
-  /** Zero-package escape hatch: a module whose default export is a constructed `SearchAdapter`. */
-  | { adapterFile: string }
-
 /** VitePress resolves its config once per build; the hooks must wrap once too. */
 const wrapped = new WeakSet<SiteConfig>()
 
-export function search(provider: SearchProvider, options: SearchOptions = {}): Plugin {
-  const definition = 'adapterFile' in provider ? undefined : provider
+export function search(provider: ProviderDefinition, options: SearchOptions = {}): Plugin {
+  const spec = provider.clientModule
+  // Misconfiguration should fail while the config is loading, not mid-build.
+  const kind = classify(spec)
   const component = resolveSearchComponent()
-  let root = process.cwd()
+  let base = process.cwd()
   let api: ProviderApi | undefined
 
   const virtuals = new Map<string, () => string | Promise<string>>()
@@ -140,11 +140,13 @@ export function search(provider: SearchProvider, options: SearchOptions = {}): P
       // Core and the provider package ship raw .vue/.ts: never esbuild-prebundle
       // them, always SSR-compile them.
       const rawPackages = [PKG]
-      const providerPackage = definition && packageOf(definition.clientModule)
+      const providerPackage = kind === 'bare' ? packageOf(spec) : undefined
       if (providerPackage && providerPackage !== PKG) rawPackages.push(providerPackage)
-      const include = providerPackage
-        ? (definition?.clientDeps ?? []).map((dep) => `${providerPackage} > ${dep}`)
-        : []
+      // Virtual/path client modules are never prebundled or externalized, so
+      // their deps go in as plain entries rather than `pkg > dep` chains.
+      const include = (provider.clientDeps ?? []).map((dep) =>
+        providerPackage ? `${providerPackage} > ${dep}` : dep,
+      )
       return {
         resolve: {
           alias: Object.fromEntries(SEARCH_SPECIFIERS.map((s) => [s, component])),
@@ -157,18 +159,21 @@ export function search(provider: SearchProvider, options: SearchOptions = {}): P
     },
 
     configResolved(resolvedConfig) {
-      root = resolvedConfig.root
       const siteConfig = resolvedConfig.vitepress
-      if (!definition?.node || !siteConfig || api) return
+      // User paths resolve the way VitePress's own do: against the VitePress
+      // project root (the directory containing `.vitepress`) — vite's root is
+      // `srcDir`, which puts user code inside the content tree when customized.
+      base = siteConfig?.root ?? resolvedConfig.root
+      if (!provider.node || !siteConfig || api) return
       api = createProviderApi(siteConfig, resolvedConfig.command === 'serve', {
-        name: definition.name,
+        name: provider.name,
         virtuals,
         pageCallbacks,
         buildEndCallbacks,
       })
-      definition.node.setup?.(siteConfig, api)
+      provider.node.setup?.(siteConfig, api)
       if (!api.dev && (pageCallbacks.length || buildEndCallbacks.length)) {
-        wrapBuildHooks(siteConfig, definition.name, pageCallbacks, buildEndCallbacks)
+        wrapBuildHooks(siteConfig, provider.name, pageCallbacks, buildEndCallbacks)
       }
     },
 
@@ -176,18 +181,33 @@ export function search(provider: SearchProvider, options: SearchOptions = {}): P
       if (id.startsWith(VIRTUAL_PREFIX)) return '\0' + id
     },
 
-    load(id) {
+    async load(id) {
       if (!id.startsWith('\0' + VIRTUAL_PREFIX)) return
       const bare = id.slice(1)
       if (bare === ADAPTER_ID) {
-        if ('adapterFile' in provider) {
-          const file = isAbsolute(provider.adapterFile)
-            ? provider.adapterFile
-            : resolve(root, provider.adapterFile)
-          return `export { default } from ${JSON.stringify(slash(file))}\n`
+        // Resolvability is checked here — the one hook with resolver access in
+        // dev, build and SSR alike — so failures name the option and the base
+        // directory instead of vite erroring on our internal virtual module.
+        // Virtual ids are emitted raw, never pre-resolved: `\0` cannot appear
+        // in an import specifier, so the other plugin's resolveId must run at
+        // import time. Bare specifiers likewise resolve from the project root.
+        const emitted =
+          kind === 'path' ? slash(isAbsolute(spec) ? spec : resolve(base, spec)) : spec
+        const resolved = await this.resolve(emitted, slash(join(base, 'index.html'))).catch(
+          () => null,
+        )
+        if (!resolved) {
+          this.error(
+            `cannot resolve clientModule ${JSON.stringify(spec)} from ${base}. ` +
+              (kind === 'virtual'
+                ? '"virtual:" ids must be provided by another plugin’s resolveId hook — ' +
+                  'is that plugin registered in vite.plugins?'
+                : 'Relative paths resolve against the VitePress project root; for a ' +
+                  'config-relative file, derive an absolute path from import.meta.url.'),
+          )
         }
         return (
-          `import create from ${JSON.stringify(provider.clientModule)}\n` +
+          `import create from ${JSON.stringify(emitted)}\n` +
           `import options from ${JSON.stringify(PROVIDER_OPTIONS_ID)}\n` +
           `export default create(options)\n`
         )
@@ -197,7 +217,7 @@ export function search(provider: SearchProvider, options: SearchOptions = {}): P
         return `export default ${JSON.stringify({ translations, locales })}\n`
       }
       if (bare === PROVIDER_OPTIONS_ID) {
-        const value = definition?.clientOptions
+        const value = provider.clientOptions
         return `export default ${value === undefined ? 'undefined' : JSON.stringify(value)}\n`
       }
       const virtual = virtuals.get(bare)
@@ -207,17 +227,17 @@ export function search(provider: SearchProvider, options: SearchOptions = {}): P
     },
 
     configureServer(server) {
-      if (api) definition?.node?.configureServer?.(server, api)
+      if (api) provider.node?.configureServer?.(server, api)
     },
 
     async hotUpdate(ctx) {
-      if (!api || !definition?.node?.hotUpdate) return
+      if (!api || !provider.node?.hotUpdate) return
       if (this.environment.name !== 'client') return
-      const ids = await definition.node.hotUpdate(ctx.file, api)
+      const ids = await provider.node.hotUpdate(ctx.file, api)
       if (!ids?.length) return
       const graph = this.environment.moduleGraph
       const invalidated = ids.flatMap((id) => {
-        const mod = graph.getModuleById(`\0${VIRTUAL_PREFIX}${definition.name}/${id}`)
+        const mod = graph.getModuleById(`\0${VIRTUAL_PREFIX}${provider.name}/${id}`)
         if (!mod) return []
         graph.invalidateModule(mod)
         return [mod]
@@ -307,11 +327,33 @@ function resolveSearchComponent(): string {
   return candidates.find(existsSync) ?? candidates.at(-1)!
 }
 
-/** The package a bare module specifier belongs to; undefined for paths. */
-function packageOf(specifier: string): string | undefined {
-  if (specifier.startsWith('.') || specifier.startsWith('/') || specifier.includes(':')) return
+/** How a specifier option is treated; misuse throws while config loads. */
+type SpecifierKind = 'bare' | 'path' | 'virtual'
+
+/** Mirrors vite's own bare-import test: scheme-less and not a path. */
+const BARE_RE = /^[\w@](?!.*:\/\/)/
+
+function classify(specifier: string): SpecifierKind {
+  const reject = (why: string): never => {
+    throw new Error(`${TAG} clientModule ${JSON.stringify(specifier)}: ${why}`)
+  }
+  if (specifier.startsWith('\0')) {
+    return reject('`\\0`-prefixed ids are bundler-internal — pass the plain id')
+  }
+  if (specifier.startsWith('virtual:')) return 'virtual'
+  if (specifier[0] === '.' || specifier[0] === '/' || isAbsolute(specifier)) {
+    // vite's `cleanUrl` would truncate these into an unresolvable id.
+    if (/[#?]/.test(specifier)) return reject('file paths must not contain `#` or `?`')
+    return 'path'
+  }
+  if (BARE_RE.test(specifier)) return 'bare'
+  return reject('expected a file path, a bare package specifier, or a `virtual:` id')
+}
+
+/** npm package name of a bare specifier (`@scope/name` or `name`). */
+function packageOf(specifier: string): string {
   const [scope, name] = specifier.split('/')
-  return specifier.startsWith('@') ? (name ? `${scope}/${name}` : undefined) : scope
+  return specifier.startsWith('@') && name ? `${scope}/${name}` : scope!
 }
 
 interface AliasEntry {

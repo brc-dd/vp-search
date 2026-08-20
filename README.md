@@ -34,7 +34,7 @@ export default defineConfig({
 })
 ```
 
-Providers are objects, not strings: `minisearch()` from `@vp-search/minisearch`, `algolia({ appId, apiKey, indexName })` from `@vp-search/algolia`, or any third-party package implementing the `ProviderDefinition` contract from `@vp-search/core/node`. A local module exporting a constructed adapter works too: `search({ adapterFile: './my-adapter.ts' })`.
+Providers are objects, not strings: `minisearch()` from `@vp-search/minisearch`, `algolia({ appId, apiKey, indexName })` from `@vp-search/algolia`, or any third-party package implementing the `ProviderDefinition` contract from `@vp-search/core/node`. No package needed for a hand-written adapter either: `search({ name: 'custom', clientModule: './my-adapter.ts' })`, where the file default-exports an adapter factory.
 
 ## Layout
 

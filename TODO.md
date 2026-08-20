@@ -5,7 +5,7 @@ Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); cur
 ## 1. Meta-plugin split (done 2026-08)
 
 - [x] Restructure to pnpm workspace packages: `packages/core` (UI, shared format, translations, node plugin shell), `packages/algolia` (dep-free), `packages/minisearch` (owns `minisearch` + `linkedom` — moved out of the root package)
-- [x] Replace the provider union with the public `ProviderDefinition` / `ProviderApi` contract (DESIGN §8b): `search(minisearch({...}))`, core-owned hook latches, namespaced virtuals, `emitAsset`; `adapterFile` escape hatch kept
+- [x] Replace the provider union with the public `ProviderDefinition` / `ProviderApi` contract (DESIGN §8b): `search(minisearch({...}))`, core-owned hook latches, namespaced virtuals, `emitAsset`; the zero-package escape hatch is a bare definition with a `clientModule` file path (`adapterFile` dropped once path resolution was done properly)
 - [x] Our adapters consume the same public contract a third party would
 - [x] Publish names decided: `@vp-search/*` scope, core as `@vp-search/core`
 - [x] Names reserved: `vp-search` npm org claimed; GitHub repo renamed to `brc-dd/vp-search`
@@ -39,6 +39,8 @@ Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); cur
 - [ ] Policies: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue/PR templates
 - [ ] CI: typecheck + tests + example build on PR; publish workflow (OIDC)
 - [ ] Repo polishing pass: README rewrite for the split layout, badges, adapter-authoring guide
+- [ ] Comment-density cleanup across packages: comments are very verbose today; thin them to the load-bearing ones once APIs are stabler (deferred, like the DESIGN.md distill below)
+- [ ] Distill + reorganize DESIGN.md for human readability: keep the format spec, contracts, mapping tables, current architecture, ceilings, and open questions; compress shipped-decision rationale to a line or two (git history keeps the long form); fold survey notes into the sections they justify
 
 ## 4. Docs & deployments
 
