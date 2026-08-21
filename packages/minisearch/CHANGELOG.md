@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.1](https://github.com/brc-dd/vp-search/compare/minisearch-v0.1.0...minisearch-v0.1.1) (2026-08-21)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @vp-search/core bumped to 0.1.1
+  * peerDependencies
+    * @vp-search/core bumped to 0.1.1
+
 ## 0.1.0 (2026-08-21)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@vp-search/algolia",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Algolia DocSearch provider for @vp-search/core — a plain-fetch adapter for DocSearch indexes, without the algoliasearch client or the DocSearch UI bundle.",
   "keywords": [
     "algolia",

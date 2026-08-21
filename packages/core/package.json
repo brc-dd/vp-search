@@ -1,6 +1,6 @@
 {
   "name": "@vp-search/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pluggable search for VitePress — an accessible search dialog, a shared result format, and a provider contract any backend can implement.",
   "keywords": [
     "documentation",
