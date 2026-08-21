@@ -67,13 +67,17 @@ beforeEach(() => {
   vi.useFakeTimers()
 })
 
-afterEach(() => {
+afterEach(async () => {
   for (const wrapper of wrappers.splice(0)) wrapper.unmount()
   for (const link of links()) link.remove()
   document.body.replaceChildren()
   backend.preconnect = undefined
   vi.useRealTimers()
   resetVitepress()
+  // The open path fires defineAsyncComponent's import of VPSearchBox; when this
+  // file runs on a cold module graph and finishes first, that chain is still in
+  // flight at environment teardown (seed 324460688171 caught it).
+  await vi.dynamicImportSettled()
 })
 
 describe('preconnect', () => {
