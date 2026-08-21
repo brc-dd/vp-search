@@ -85,7 +85,9 @@ jobs:
   # Real browser over the dedicated fixture site, dev and built output — the
   # two paths genuinely diverge (inlined dev locales vs fetched artifacts).
   e2e:
-    runs-on: ubuntu-26.04
+    # e2e stays on 24.04: three dev-mode renderer-crash episodes on the 26.04
+    # preview image (zero ever on 24.04) — re-probe when it GAs.
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
