@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/brc-dd/vp-search/compare/core-v0.1.0...core-v0.1.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* clear results synchronously when the query empties ([a3138cc](https://github.com/brc-dd/vp-search/commit/a3138ccbf37fcfb0d039d704c5c5df5bc1e28ae0))
+
 ## 0.1.0 (2026-08-21)
 
 
