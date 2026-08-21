@@ -1,7 +1,6 @@
 {
   "name": "@vp-search/algolia",
   "version": "0.0.0",
-  "private": true,
   "description": "Algolia DocSearch provider for @vp-search/core — a plain-fetch adapter for DocSearch indexes, without the algoliasearch client or the DocSearch UI bundle.",
   "keywords": [
     "algolia",
@@ -29,6 +28,7 @@
     "./package.json": "./package.json"
   },
   "publishConfig": {
+    "access": "public",
     "exports": {
       ".": "./dist/index.js",
       "./adapter": "./dist/adapter.js",

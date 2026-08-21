@@ -14,6 +14,7 @@ Done 2026-08 (details in DESIGN §8/§13 and git history):
 - Per-environment tsconfig projects (client/node/shared/worker per package): environment leaks fail `pnpm typecheck`.
 - Vitest suites (DESIGN §13): vitest 5 rc, seven projects (shared/client/worker/node/integrity/e2e/live), ~700 tests — unit, component, provider/plugin, dist-integrity, a dedicated-fixture-site e2e in dev and build modes (incl. the dev/prod indexing-fidelity contract and an HMR round trip), and a live Algolia schema-drift lane (`pnpm test:live`; nightly in CI).
 - Upstream reports from the build-tooling work: vue-sfc-transformer#303/#304 (fix PRs #305/#306; patched in `patches/` until released), plus the pnpm 12 RC `pnpm pack` NUL-typeflag regression and the vitepress `VPSidebar` SSR watch-source warn, both since fixed upstream.
+- Release automation (2026-08): release-please manifest mode with the node-workspace cascade; per-package changelogs/tags/releases; isolated OIDC publish pipeline in `release.yml`.
 
 Pending:
 
@@ -24,9 +25,6 @@ Pending:
   - `--detectAsyncLeaks` runs in the nightly — promote it to PR CI if it stays quiet
   - `fromRanges` inclusive-end conversion precedent test — deferred until a positions-based adapter exists to need it
   - evaluated and rejected, kept so they don't get re-proposed: a fast-check differential oracle (would test MiniSearch's scorer, not our thin wrapper), a runtime optimizeDeps waterfall probe (expensive and flaky; the config shape is already pinned), a real-browser out-of-order worker race (stale-response handling is covered in unit tests; revisit only if a stale render is ever observed)
-- [ ] Changelogs + versioning (changesets) + GitHub releases
-- [ ] npm trusted publishing (OIDC) + first publish
-- [ ] Before publishing, hand-check the packed-tarball consumer smoke once (blank vitepress app: install the tarballs, build, search works)
 - [ ] Pre-ship sweep of modern platform features — beyond-Baseline ones go behind feature detection rather than raising the floor. Parked candidates:
   - CSS Custom Highlight API — only needed for a future rendered-HTML excerpt view; segments already render real `<mark>`s
   - `<search>` element — wants an a11y review against the dialog + combobox pattern first
@@ -45,7 +43,7 @@ Pending:
 - [x] LICENSE (2026-08): MIT at the root and in each package
 - [ ] GitHub UI fields: description, topics, website; social preview
 - [ ] Policies: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue/PR templates
-- [ ] CI: shipped 2026-08, extended with the test suites (`ci.yml`: parallel check/unit/e2e-matrix lanes — build precedes typecheck because `vue-tsc -p test` validates the dist declarations; integrity tests in check; `--only-shell` chromium, uncached on purpose; TZ/LANG/FORCE_COLOR pinned; lockfile trust-policy verified once per run in check via `PNPM_CONFIG_TRUST_LOCKFILE`; `nightly.yml`: 3× seeded shuffle + `--detectAsyncLeaks` + the live Algolia contract). Still open: publish workflow (OIDC)
+- [x] CI (2026-08): `ci.yml` check/unit/e2e lanes, `nightly.yml` seeded shuffle + `--detectAsyncLeaks` + live Algolia, `release.yml` release-please + OIDC publish
 - [ ] Repo polishing pass: README rewrite for the split layout, badges, adapter-authoring guide
 - [x] Comment-density cleanup (2026-08): JSDoc describes contracts, inline comments carry only whys; background retellings replaced with DESIGN § pointers; multi-line comments wrapped to print width
 - [x] DESIGN.md distilled (2026-08): states decided/rejected/open with one-line whys; survey scaffolding gone, long form in git history

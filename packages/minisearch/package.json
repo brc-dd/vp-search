@@ -1,7 +1,6 @@
 {
   "name": "@vp-search/minisearch",
   "version": "0.0.0",
-  "private": true,
   "description": "Local search provider for @vp-search/core — per-locale MiniSearch indexes built from the rendered site, tiered artifacts queried in a Web Worker, CJK-aware.",
   "keywords": [
     "full-text-search",
@@ -33,6 +32,7 @@
     "./package.json": "./package.json"
   },
   "publishConfig": {
+    "access": "public",
     "exports": {
       ".": "./dist/index.js",
       "./adapter": "./dist/adapter.js",

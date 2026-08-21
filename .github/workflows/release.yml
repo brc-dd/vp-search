@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+# Queue, never cancel: a publish must not be killed mid-flight.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # Release PR from conventional commits; per-package tags + GitHub releases on merge. Release PRs
+  # from GITHUB_TOKEN don't trigger ci.yml — pass a PAT via `with: token` if they need checks.
+  release-please:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+    steps:
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+
+  # Split from publish so build scripts never run where an OIDC token can be minted; caches off in
+  # both jobs so a poisoned entry can't reach a shipped artifact.
+  build:
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm and node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+        with:
+          cache: false
+
+      # In-build publint + attw keep gating the publish shape (DESIGN §8).
+      - name: Build packages
+        run: pnpm build
+
+      - name: Upload build output
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist
+          path: packages/*/dist
+          retention-days: 1
+
+  # Trusted publishing (OIDC): tokenless, provenance automatic. No install, no scripts — pnpm
+  # packs manifests + prebuilt dist; already-published versions are skipped (idempotent re-runs).
+  # For npm-side staging, swap in `pnpm -r stage publish` + allowed action "npm stage publish".
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # Named in the npm trusted-publisher config; required reviewers gate publishes on a human.
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm and node
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
+        with:
+          cache: false
+
+      - name: Download build output
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: packages
+
+      - name: Publish to npm
+        run: pnpm -r publish --no-git-checks --ignore-scripts
