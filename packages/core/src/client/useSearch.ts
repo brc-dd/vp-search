@@ -31,7 +31,11 @@ export function useSearch(options: UseSearchOptions) {
 
   watch(query, (value) => {
     clearTimeout(timer)
-    timer = setTimeout(run, options.debounce ?? 200, value.trim())
+    const q = value.trim()
+    // an empty query has no request to coalesce — debouncing it would leave the stale results
+    // rendered next to the idle state until the timer fires, so clear synchronously instead
+    if (!q) return void run(q)
+    timer = setTimeout(run, options.debounce ?? 200, q)
   })
 
   async function run(q: string) {

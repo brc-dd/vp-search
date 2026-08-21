@@ -139,6 +139,25 @@ describe('empty query', () => {
     expect(searchFn).toHaveBeenCalledTimes(1)
   })
 
+  // Bug: clearing used to ride the debounce like any other input. VPSearchBox derives its idle
+  // state from the query synchronously, so the stale results rendered next to the idle text for
+  // the full debounce window.
+  test('clearing takes effect on the watcher flush, before any debounce elapses', async () => {
+    const searchFn = fake()
+    const { query, results, total, status } = setup({
+      adapter: { name: 'fake', search: searchFn },
+    })
+
+    await search(query, 'vue')
+    expect(results.value).toHaveLength(1)
+
+    query.value = ''
+    await nextTick()
+    expect(results.value).toEqual([])
+    expect(total.value).toBeUndefined()
+    expect(status.value).toBe('idle')
+  })
+
   test('a whitespace-only query counts as empty', async () => {
     const searchFn = fake()
     const { query, status } = setup({ adapter: { name: 'fake', search: searchFn } })
