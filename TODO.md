@@ -4,38 +4,44 @@ Working list for upcoming sessions. Context lives in [DESIGN.md](DESIGN.md); cur
 
 ## 1. Meta-plugin split (done 2026-08)
 
-- [x] Restructure to pnpm workspace packages: `packages/core` (UI, shared format, translations, node plugin shell), `packages/algolia` (dep-free), `packages/minisearch` (owns `minisearch` + `linkedom` — moved out of the root package)
-- [x] Replace the provider union with the public `ProviderDefinition` / `ProviderApi` contract (DESIGN §8b): `search(minisearch({...}))`, core-owned hook latches, namespaced virtuals, `emitAsset`; the zero-package escape hatch is a bare definition with a `clientModule` file path (`adapterFile` dropped once path resolution was done properly)
-- [x] Our adapters consume the same public contract a third party would
-- [x] Publish names decided: `@vp-search/*` scope, core as `@vp-search/core`
-- [x] Names reserved: `vp-search` npm org claimed; GitHub repo renamed to `brc-dd/vp-search`
+pnpm workspace under the `@vp-search/*` scope: `core` (UI, shared format, node plugin), `algolia` (dep-free), `minisearch` (owns `minisearch` + `linkedom`). Providers plug in through the public `ProviderDefinition`/`ProviderApi` contract (DESIGN §8b) — our own adapters use the same seam a third party would, and a bare definition with a `clientModule` path works without any package. npm org and GitHub name (`brc-dd/vp-search`) reserved.
 
 ## 2. Release readiness
 
-- [x] Build tooling (2026-08): tsdown unbundle builds per package (`tsdown.base.ts`), SFCs stay raw source via vue-sfc-transformer (TS transpiled out, `.d.vue.ts` beside), `.d.ts` for everything; exports stay src for workspace dev, `publishConfig.exports` flips to dist at pack (Nuxt pattern). In-build publint + attw (esm-only, error) + unplugin-unused. No `prepack` scripts — deliberate: attw packs during the build, so a `prepack: tsdown` recurses into a fork bomb; pack/publish flows must run `pnpm build` first
-- [ ] Upstream reports from the build-tooling work:
-  - vue-sfc-transformer (patched locally in `patches/`, drop when released): oxc transpile drops template-only `.vue`/value imports (tsc-style elision, can't see the template) and synthesizes `export {}` in `<script setup>`; fix = `typescript.onlyRemoveTypeImports` + strip trailing `export {}` (repro: `transform('t.ts', "import V from './V.vue'\nconst x = 1", { lang: 'ts' })` via `rolldown/utils`)
-  - pnpm 12 RC: `pnpm pack` writes the pre-POSIX NUL typeflag for regular files (npm and pnpm 11 write `'0'`); breaks minimal tar parsers — @publint/pack 0.1.7 (2026-08-19) already added tolerance on their side, others may not have
-  - vitepress: `VPSidebar.vue`'s `watch([props, navEl], …)` is an invalid watch source under SSR — props aren't reactified server-side and dev Vue wraps them in `shallowReadonly`, hence `[Vue warn]: Invalid watch source: Proxy({ open: false })` per rendered page. Verified 2026-08 with a pure-Vue `renderToString` repro; our plugin AND vitest both exonerated (plain node reproduces) — the trigger is vue getting require-cached under a non-production `NODE_ENV` before `build()` forces production, i.e. any programmatic build inside a test process; no local mitigation exists since the cache predates globalSetup. Fix branched in the local clone (`vp-temp-7`, `fix/sidebar-ssr-watch-source`: watch `() => props.open`; verified 14→0 warns against a patched dist) — PR it upstream
-- [ ] CSS split into importable layers (`variables` separate from component styles) — unblocked: the build-tooling precondition landed 2026-08
-- [x] Separate tsconfigs per environment (2026-08): per-package env projects (core shared/client/node, minisearch shared/client/worker/node, algolia client/node) over `tsconfig.base.json`, run by each package's `typecheck` script in CI; cross-runtime globals for the bare-ES shared projects live in `shared-globals.d.ts` (merge-compatible with lib.dom/@types/node). Caught real leaks on first run (AbortSignal/performance, DOM type names in linkedom-consuming node code, DOM-vs-undici `res.json()`). Tests project still to come with the vitest suites; `examples/docs` deliberately stays at upstream strictness (vendored)
-- [x] Vitest suites (2026-08, DESIGN §13): vitest 5.0.0-rc.2, seven projects over per-env test dirs (shared/client/worker/node/integrity/e2e/live), ~700 tests. All scratch seeds ported (incl. the fromTerms marks-slice-the-original-text regression), plus adapter/plugin/provider/indexer/component suites, dist integrity (ex-`validate-sfc` + dist-entry smoke + eager-graph guards), a dedicated-fixture-site e2e (dev + build passes; the fidelity suite pins the dev/prod gap per-mode incl. the `<ClientOnly>` inversion; HMR round trip on an isolated second site) and a live Algolia schema-drift contract lane (`VP_SEARCH_LIVE=1 pnpm test:live`). E2e-over-`examples/docs` was rejected in favor of the dedicated site — vendored content would churn assertions
-- [ ] Test-suite follow-ups, deliberately deferred: e2e failure traces (`context.tracing` + `upload-artifact if: failure()`) plus the recorded brittle spots (upstream-owned selectors, fuzzy-sensitive exact counts, scroll-lock CSS coupling, worker-fetch route-interception assumption); coverage thresholds + `.vue` coverage ratchet once suites settle; promote `--detectAsyncLeaks` from nightly to PR CI if it stays quiet; out-of-order worker responses / abort-drop under a real browser (the node shim delivers synchronously; the user-visible consequence is already covered by useSearch's staleness tests — revisit only if a stale-render bug is ever observed); optimizeDeps cold-open waterfall probe (config shape already pinned; a runtime probe is expensive and flaky); `fromRanges` inclusive-end conversion precedent test (defer until a positions-based adapter lands); a fast-check differential oracle was evaluated and REJECTED — it would test MiniSearch's scorer, not our thin wrapper, and adds a dependency for weak assertions
-- [ ] Package-specific changelogs + versioning strategy (changesets fits the workspace) + GitHub tags/releases
-- [ ] npm trusted publishing (OIDC) setup + first publish
-- [ ] `pnpm publish` dry-runs per package (peer ranges, files, exports resolution from dist) — partially covered since 2026-08: every build publint- and attw-checks the packed tarball; packed-tarball consumer smoke (blank vitepress app, build + search in browser) verified by hand, worth scripting
-- [ ] Pre-ship sweep of modern platform features across CSS/HTML/JS/TS/Node/ESM for progressive improvements — including features beyond the Baseline 2024 floor, adopted behind feature detection / graceful degradation rather than raising the floor. Candidates parked so far, with why:
-  - CSS Custom Highlight API — main path needs no DOM post-processing (segments render real `<mark>`s from data); only the tool for the future rendered-HTML excerpt view, and Baseline 2025 (Firefox 140). DESIGN §5.
-  - `<search>` element — surfaced in the Baseline pass but unapplied: shell semantics need an a11y review against the dialog + combobox pattern first
-  - `@scope` — Vue scoped styles already isolate the SFC; only interesting for the global scroll-lock rule
-  - dialog `closedby` / invoker commands — would delete the manual backdrop hit-test and open/close wiring, but Baseline 2025
-  - view transitions on modal open — `@starting-style` transitions already cover it cheaply; VT is beyond the floor and needs its own reduced-motion care
-  - `content-visibility` on result lists — pointless at 12 rows; becomes relevant for the `/search` page's long lists
-  - `scheduler.yield` in the worker — queries measured sub-ms at docs scale, only matters for giant-corpus tiers; Chromium-only
-  - `Promise.withResolvers` — Baseline 2024, adoptable now: the minisearch adapter hand-rolls a `Deferred`; trivial refactor left for the sweep
-  - iterator helpers — late-2024/2025 baseline edge; minor indexer wins at best
-  - import attributes — no JSON-module need yet (node side reads via fs); vitepress core just adopted them (b0da3845), so use for consistency when the need appears
-  - `import.meta.resolve` — already adopted (node plugin alias resolution, with a `new URL` fallback); listed as done, not pending
+Done 2026-08 (details in DESIGN §8/§13 and git history):
+
+- Build tooling: tsdown unbundle builds, SFCs ship as raw source (vue-sfc-transformer), `publishConfig.exports` flips src→dist at pack, in-build publint + attw + unplugin-unused. Never add `prepack` scripts — attw packs during the build, so `prepack: tsdown` is a fork bomb; run `pnpm build` before pack/publish.
+- Per-environment tsconfig projects (client/node/shared/worker per package): environment leaks fail `pnpm typecheck`.
+- Vitest suites (DESIGN §13): vitest 5 rc, seven projects (shared/client/worker/node/integrity/e2e/live), ~700 tests — unit, component, provider/plugin, dist-integrity, a dedicated-fixture-site e2e in dev and build modes (incl. the dev/prod indexing-fidelity contract and an HMR round trip), and a live Algolia schema-drift lane (`pnpm test:live`; nightly in CI).
+
+Pending:
+
+- [ ] File upstream reports:
+  - vue-sfc-transformer — oxc's TS transpile drops imports used only in the template (tsc-style elision can't see templates) and synthesizes a trailing `export {}` in `<script setup>`; worked around in `patches/` via `typescript.onlyRemoveTypeImports` + stripping the synthesized export — drop the patch when a fixed release lands
+  - pnpm 12 — `pnpm pack` writes the pre-POSIX NUL typeflag for regular files (npm and pnpm 11 write `'0'`), which breaks minimal tar parsers; @publint/pack already added tolerance on their side, other consumers may not have
+- [ ] CSS split into importable layers (`variables` vs component styles)
+- [ ] Test follow-ups:
+  - e2e failure artifacts — capture playwright traces on failure and upload them from CI; today a red e2e run leaves no visual evidence
+  - harden the known-brittle e2e assertions: theme-owned selectors, exact result counts (sensitive to MiniSearch's fuzzy/prefix settings), scroll-lock asserted through the CSS `:has()` rule, and the tiers test's assumption that `page.route` can intercept worker fetches
+  - coverage: add `.vue` files and ratchet thresholds once the suites settle (v8 over src `.ts` only today, nothing gates)
+  - `--detectAsyncLeaks` runs in the nightly — promote it to PR CI if it stays quiet
+  - `fromRanges` inclusive-end conversion precedent test — deferred until a positions-based adapter exists to need it
+  - evaluated and rejected, kept so they don't get re-proposed: a fast-check differential oracle (would test MiniSearch's scorer, not our thin wrapper), a runtime optimizeDeps waterfall probe (expensive and flaky; the config shape is already pinned), a real-browser out-of-order worker race (stale-response handling is covered in unit tests; revisit only if a stale render is ever observed)
+- [ ] Changelogs + versioning (changesets) + GitHub releases
+- [ ] npm trusted publishing (OIDC) + first publish
+- [ ] Before publishing, hand-check the packed-tarball consumer smoke once (blank vitepress app: install the tarballs, build, search works)
+- [ ] Pre-ship sweep of modern platform features — beyond-Baseline ones go behind feature detection rather than raising the floor. Parked candidates:
+  - CSS Custom Highlight API — only needed for a future rendered-HTML excerpt view; segments already render real `<mark>`s
+  - `<search>` element — wants an a11y review against the dialog + combobox pattern first
+  - `@scope` — Vue scoped styles already isolate the SFCs; only the global scroll-lock rule would benefit
+  - dialog `closedby` / invoker commands — would delete the manual backdrop hit-test and close wiring, but Baseline 2025
+  - view transitions on modal open — `@starting-style` already covers it cheaply; needs its own reduced-motion care
+  - `content-visibility` on result lists — pointless at 12 rows; relevant once the `/search` page has long lists
+  - `scheduler.yield` in the worker — queries are sub-ms at docs scale; giant corpora only, and Chromium-only
+  - `Promise.withResolvers` — adoptable now: replaces the minisearch adapter's hand-rolled Deferred
+  - iterator helpers — minor indexer wins at best
+  - import attributes — adopt when a JSON-module need appears (vitepress core already uses them)
+  - `import.meta.resolve` — already adopted in the node plugin; done, not pending
 
 ## 3. Repo & governance
 
