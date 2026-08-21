@@ -13,13 +13,10 @@ Done 2026-08 (details in DESIGN §8/§13 and git history):
 - Build tooling: tsdown unbundle builds, SFCs ship as raw source (vue-sfc-transformer), `publishConfig.exports` flips src→dist at pack, in-build publint + attw + unplugin-unused. Never add `prepack` scripts — attw packs during the build, so `prepack: tsdown` is a fork bomb; run `pnpm build` before pack/publish.
 - Per-environment tsconfig projects (client/node/shared/worker per package): environment leaks fail `pnpm typecheck`.
 - Vitest suites (DESIGN §13): vitest 5 rc, seven projects (shared/client/worker/node/integrity/e2e/live), ~700 tests — unit, component, provider/plugin, dist-integrity, a dedicated-fixture-site e2e in dev and build modes (incl. the dev/prod indexing-fidelity contract and an HMR round trip), and a live Algolia schema-drift lane (`pnpm test:live`; nightly in CI).
+- Upstream reports from the build-tooling work: vue-sfc-transformer#303/#304 (fix PRs #305/#306; patched in `patches/` until released), plus the pnpm 12 RC `pnpm pack` NUL-typeflag regression and the vitepress `VPSidebar` SSR watch-source warn, both since fixed upstream.
 
 Pending:
 
-- [ ] File upstream reports:
-  - vue-sfc-transformer — oxc's TS transpile drops imports used only in the template (tsc-style elision can't see templates) and synthesizes a trailing `export {}` in `<script setup>`; worked around in `patches/` via `typescript.onlyRemoveTypeImports` + stripping the synthesized export — drop the patch when a fixed release lands
-  - pnpm 12 — `pnpm pack` writes the pre-POSIX NUL typeflag for regular files (npm and pnpm 11 write `'0'`), which breaks minimal tar parsers; @publint/pack already added tolerance on their side, other consumers may not have
-- [ ] CSS split into importable layers (`variables` vs component styles)
 - [ ] Test follow-ups:
   - e2e failure artifacts — capture playwright traces on failure and upload them from CI; today a red e2e run leaves no visual evidence
   - harden the known-brittle e2e assertions: theme-owned selectors, exact result counts (sensitive to MiniSearch's fuzzy/prefix settings), scroll-lock asserted through the CSS `:has()` rule, and the tiers test's assumption that `page.route` can intercept worker fetches
@@ -45,7 +42,7 @@ Pending:
 
 ## 3. Repo & governance
 
-- [ ] LICENSE file (package.json says MIT; no file exists) — per package after the split
+- [x] LICENSE (2026-08): MIT at the root and in each package
 - [ ] GitHub UI fields: description, topics, website; social preview
 - [ ] Policies: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue/PR templates
 - [ ] CI: shipped 2026-08, extended with the test suites (`ci.yml`: parallel check/unit/e2e-matrix lanes — build precedes typecheck because `vue-tsc -p test` validates the dist declarations; integrity tests in check; `--only-shell` chromium, uncached on purpose; TZ/LANG/FORCE_COLOR pinned; lockfile trust-policy verified once per run in check via `PNPM_CONFIG_TRUST_LOCKFILE`; `nightly.yml`: 3× seeded shuffle + `--detectAsyncLeaks` + the live Algolia contract). Still open: publish workflow (OIDC)
