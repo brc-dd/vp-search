@@ -18,7 +18,7 @@ jobs:
   # vitest never prints the seed it picks on its own; three legs give three
   # orders per night.
   shuffle:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
@@ -53,7 +53,7 @@ jobs:
   # Schema-drift contract against the public DocSearch index (search-only key).
   # Network-dependent by design, so it lives here and never gates PRs.
   live:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read

@@ -25,9 +25,9 @@ env:
 jobs:
   # Compile + publish-shape validation. Owns the lockfile verification.
   check:
-    # ubuntu-26.04 probe: playwright-core 1.62 officially supports it; the image
-    # is still GitHub-preview (no SLA) — evaluating ahead of the -latest repoint.
-    runs-on: ubuntu-26.04
+    # Back on 24.04 everywhere: a 26.04-preview probe hit repeated dev-mode
+    # renderer crashes (zero ever on 24.04) — re-probe when the image GAs.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
@@ -64,7 +64,7 @@ jobs:
 
   # Fast hermetic lane: no build, no browser. Reddest fastest.
   unit:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -85,8 +85,6 @@ jobs:
   # Real browser over the dedicated fixture site, dev and built output — the
   # two paths genuinely diverge (inlined dev locales vs fetched artifacts).
   e2e:
-    # e2e stays on 24.04: three dev-mode renderer-crash episodes on the 26.04
-    # preview image (zero ever on 24.04) — re-probe when it GAs.
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -123,7 +121,7 @@ jobs:
         run: pnpm run "$SCRIPT"
 
   lint-workflows:
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
