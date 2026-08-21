@@ -2,9 +2,28 @@
   "name": "@vp-search/minisearch",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
-  "description": "MiniSearch local-search provider for @vp-search/core — build-time per-locale index artifacts, queried in a worker.",
+  "description": "Local search provider for @vp-search/core — per-locale MiniSearch indexes built from the rendered site, tiered artifacts queried in a Web Worker, CJK-aware.",
+  "keywords": [
+    "full-text-search",
+    "local-search",
+    "minisearch",
+    "search",
+    "vitepress",
+    "vitepress-plugin",
+    "web-worker"
+  ],
   "license": "MIT",
+  "author": "Divyansh Singh <brc-dd@hotmail.com> (https://github.com/brc-dd)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brc-dd/vp-search.git",
+    "directory": "packages/minisearch"
+  },
+  "funding": "https://github.com/sponsors/brc-dd",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "sideEffects": [
     "**/worker.*"
   ],
@@ -20,16 +39,9 @@
       "./package.json": "./package.json"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc -p tsconfig.shared.json && tsc -p tsconfig.client.json && tsc -p tsconfig.worker.json && tsc -p tsconfig.node.json && tsc -p test"
-  },
-  "peerDependencies": {
-    "@vp-search/core": "workspace:*",
-    "vitepress": "^2.0.0-alpha.1"
   },
   "dependencies": {
     "linkedom": "^0.18.13",
@@ -38,5 +50,9 @@
   "devDependencies": {
     "@vp-search/core": "workspace:*",
     "vitepress": "2.0.0-alpha.19"
+  },
+  "peerDependencies": {
+    "@vp-search/core": "workspace:*",
+    "vitepress": "^2.0.0-alpha.1"
   }
 }

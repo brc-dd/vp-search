@@ -9,8 +9,8 @@ const ROOT_CONTENT = '/vp-search/root.content.json'
 const MANIFEST = '/vp-search/manifest.json'
 
 /**
- * Captured at module scope, before any `vi.stubGlobal`, so it wraps
- * `@vitest/web-worker`'s real constructor rather than itself.
+ * Captured at module scope, before any `vi.stubGlobal`, so it wraps `@vitest/web-worker`'s real
+ * constructor rather than itself.
  */
 const spawns: SpyWorker[] = []
 

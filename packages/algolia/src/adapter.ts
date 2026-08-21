@@ -41,19 +41,16 @@ export interface AlgoliaAdapterOptions {
   apiKey: string
   indexName: string
   /**
-   * Extra request parameters. They extend the request — `attributesToRetrieve`
-   * included — but never take over what the mapping depends on: the query, the
-   * sentinel highlight tags, the snippet params, and `hitsPerPage` when the
-   * context carries a limit. `facetFilters` is merged rather than replaced: the
-   * adapter owns `lang:*` (it strips those and re-injects the context's), every
-   * other filter here survives.
+   * Extends the request (`attributesToRetrieve` included) but can't override the query,
+   * highlight/snippet params, or limit-derived `hitsPerPage`. `facetFilters` merges — the adapter
+   * owns `lang:*`, every other filter survives.
    */
   searchParams?: Record<string, unknown>
 }
 
 /**
- * Queries a DocSearch-shaped Algolia index over the REST API with plain
- * `fetch` — no algoliasearch client, no DocSearch UI bundle.
+ * Queries a DocSearch-shaped Algolia index over the REST API with plain `fetch` — no algoliasearch
+ * client, no DocSearch UI bundle.
  */
 export function algoliaAdapter(options: AlgoliaAdapterOptions): SearchAdapter {
   const host = `https://${options.appId}-dsn.algolia.net`
@@ -76,9 +73,7 @@ export function algoliaAdapter(options: AlgoliaAdapterOptions): SearchAdapter {
           // Overridable: a custom schema retrieves its own attributes.
           attributesToRetrieve: ['hierarchy', 'content', 'type', 'url'],
           ...searchParams,
-          // Adapter-owned from here down: the mapping reads the sentinel tags
-          // and the snippet back out, and the locale contract owns `lang:*`,
-          // so caller params must not reach these.
+          // Adapter-owned below — caller params can't override these (see `searchParams`).
           query,
           highlightPreTag: PRE,
           highlightPostTag: POST,
@@ -103,12 +98,9 @@ export function algoliaAdapter(options: AlgoliaAdapterOptions): SearchAdapter {
 }
 
 /**
- * Core's locale convention (DESIGN §3): the adapter owns the `lang` facet, so
- * every caller-supplied `lang:*` filter is stripped and the context's lang
- * re-injected. `facetFilters` is an AND-list whose entries may themselves be
- * OR-arrays (and may be a bare string), so the strip reaches inside those too;
- * an OR-array the strip empties would match nothing and is dropped with it.
- * Everything else the caller sent survives untouched.
+ * Owns the `lang` facet (DESIGN §3). `facetFilters` is an AND-list whose entries may themselves be
+ * OR-arrays or bare strings, so the `lang:*` strip reaches inside those too — an OR-array it
+ * empties is dropped entirely.
  */
 function withLangFacet(callerFilters: unknown, lang: string | undefined): unknown[] {
   const entries: unknown[] =
@@ -152,8 +144,7 @@ function toResult(hit: DocSearchHit): SearchResult {
 /** The client factory `virtual:vp-search/adapter` instantiates. */
 export default algoliaAdapter
 
-/** Crawler text is entity-escaped and headings carry zero-width spaces from
- * heading-anchor markup. */
+/** Crawler text is entity-escaped and headings carry zero-width spaces from heading-anchor markup. */
 function clean(text: MarkedText): MarkedText {
   const out = text
     .map((seg) => ({

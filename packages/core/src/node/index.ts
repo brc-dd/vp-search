@@ -20,12 +20,7 @@ const PROVIDER_OPTIONS_ID = 'virtual:vp-search/provider-options'
 /** Provider build artifacts (`emitAsset`) land under `outDir/vp-search/`. */
 const ASSETS_SUBDIR = 'vp-search'
 
-/**
- * VitePress 2 reaches its search component through two specifiers: VPNavBar.vue
- * imports `./VPNavBarSearch.vue`, while theme-default/without-fonts.ts re-exports
- * `./components/VPNavBarSearch.vue`. Aliasing only the first — what every
- * incumbent plugin does — leaves the `vitepress/theme` named export un-hijacked.
- */
+/** Both specifiers VitePress resolves its search component through (DESIGN §7). */
 const SEARCH_SPECIFIERS = ['./VPNavBarSearch.vue', './components/VPNavBarSearch.vue']
 
 /** A rendered page, as VitePress's build hooks see it. */
@@ -47,17 +42,15 @@ export interface ProviderApi {
   /** Public URL prefix of `emitAsset` files, site base included. */
   readonly assetsBase: string
   /**
-   * Called once per rendered page during a build. Core wraps VitePress's
-   * `transformHtml` hook once, guarded, and shields the build from callback
-   * errors (they degrade to per-page warnings).
+   * Called once per rendered page during a build. Callback errors degrade to per-page warnings
+   * rather than failing the build.
    */
   onTransformHtml(cb: (page: ProviderPage) => void): void
   /** Called after the user's own `buildEnd`, before the build finishes. */
   onBuildEnd(cb: () => Promise<void> | void): void
   /**
-   * Registers `virtual:vp-search/<provider>/<id>`. Any unregistered id in that
-   * namespace loads as a `null` stub, so an inactive provider's imports never
-   * 404 — its adapter can detect the situation and say so.
+   * Registers `virtual:vp-search/<provider>/<id>`; any unregistered id in that namespace loads as a
+   * `null` stub instead of 404ing, so an inactive provider's client code can detect it.
    */
   addVirtualModule(id: string, load: () => string | Promise<string>): void
   /** Writes `outDir/vp-search/<fileName>`; call it during `onBuildEnd`. */
@@ -65,31 +58,25 @@ export interface ProviderApi {
 }
 
 /**
- * What a provider package's factory returns (DESIGN §8b). The core plugin
- * plumbs it through: the client half via `virtual:vp-search/adapter`, the
- * node half via {@link ProviderApi}. A custom provider is one package with a
- * factory and a client module — no core changes.
+ * What a provider package's factory returns (DESIGN §8b). Plumbed through by core: client half via
+ * `virtual:vp-search/adapter`, node half via {@link ProviderApi}.
  */
 export interface ProviderDefinition {
   /** Provider identifier; namespaces its virtual modules and log lines. */
   name: string
   /**
-   * Module whose default export is a factory taking `clientOptions` and
-   * returning the `SearchAdapter`. Core instantiates it through
-   * `virtual:vp-search/adapter` — a module reference, so no CSP-hostile
-   * function serialization crosses node → client. Usually a bare package
-   * specifier; a `virtual:` id (provided by another vite plugin) or a file
-   * path (relative ones resolve against the VitePress project root) works
-   * too.
+   * Module whose default export is a factory `(clientOptions) => SearchAdapter`. Instantiated via
+   * `virtual:vp-search/adapter` (a module reference, so nothing needs to serialize across node →
+   * client). Accepts a bare specifier, a `virtual:` id, or a file path — relative paths resolve
+   * against the VitePress project root, not vite's `srcDir`.
    */
   clientModule: string
   /** JSON-serializable argument for the client factory. */
   clientOptions?: unknown
   /**
-   * Bare package names `clientModule` pulls in at runtime. The provider
-   * package itself ships raw TS and is excluded from prebundling, so dev
-   * needs its deps listed explicitly (`<provider package> > <dep>`) or the
-   * cold open waterfalls on them.
+   * Bare package names `clientModule` imports at runtime. The provider package ships raw TS and is
+   * excluded from prebundling, so its deps need listing here (`<provider package> > <dep>`) or the
+   * dev cold-open waterfalls on them.
    */
   clientDeps?: string[]
   /** Node-side participation; remote-backend providers need none of it. */
@@ -97,8 +84,8 @@ export interface ProviderDefinition {
     setup?(siteConfig: SiteConfig, api: ProviderApi): void
     configureServer?(server: ViteDevServer, api: ProviderApi): void
     /**
-     * Dev-only file-change hook. Returned ids (as passed to
-     * `addVirtualModule`) are invalidated and pushed to connected clients.
+     * Dev-only file-change hook. Returned ids (as passed to `addVirtualModule`) are invalidated and
+     * pushed to connected clients.
      */
     hotUpdate?(file: string, api: ProviderApi): Promise<string[] | void> | string[] | void
   }
@@ -121,9 +108,9 @@ export function search(provider: ProviderDefinition, options: SearchOptions = {}
 
   return {
     name: 'vp-search',
-    // No `enforce`: VitePress lists its own plugin before `vite.plugins`, so a
-    // plain plugin's config hook runs after it. That is what puts our alias
-    // ahead of VitePress's and lets us see user aliases for collision checks.
+    // No `enforce`: VitePress lists its own plugin before `vite.plugins`, so a plain plugin's
+    // config hook runs after it. That is what puts our alias ahead of VitePress's and lets us see
+    // user aliases for collision checks.
 
     config(userConfig) {
       for (const specifier of SEARCH_SPECIFIERS) {
@@ -137,13 +124,13 @@ export function search(provider: ProviderDefinition, options: SearchOptions = {}
           )
         }
       }
-      // Core and the provider package ship raw .vue/.ts: never esbuild-prebundle
-      // them, always SSR-compile them.
+      // Core and the provider package ship raw .vue/.ts: never esbuild-prebundle them, always
+      // SSR-compile them.
       const rawPackages = [PKG]
       const providerPackage = kind === 'bare' ? packageOf(spec) : undefined
       if (providerPackage && providerPackage !== PKG) rawPackages.push(providerPackage)
-      // Virtual/path client modules are never prebundled or externalized, so
-      // their deps go in as plain entries rather than `pkg > dep` chains.
+      // Virtual/path client modules are never prebundled or externalized, so their deps go in as
+      // plain entries rather than `pkg > dep` chains.
       const include = (provider.clientDeps ?? []).map((dep) =>
         providerPackage ? `${providerPackage} > ${dep}` : dep,
       )
@@ -160,9 +147,8 @@ export function search(provider: ProviderDefinition, options: SearchOptions = {}
 
     configResolved(resolvedConfig) {
       const siteConfig = resolvedConfig.vitepress
-      // User paths resolve the way VitePress's own do: against the VitePress
-      // project root (the directory containing `.vitepress`) — vite's root is
-      // `srcDir`, which puts user code inside the content tree when customized.
+      // User paths resolve like VitePress's own do: against the project root (dir containing
+      // `.vitepress`), not vite's `srcDir`, which is the content tree when srcDir is customized.
       base = siteConfig?.root ?? resolvedConfig.root
       if (!provider.node || !siteConfig || api) return
       api = createProviderApi(siteConfig, resolvedConfig.command === 'serve', {
@@ -185,12 +171,10 @@ export function search(provider: ProviderDefinition, options: SearchOptions = {}
       if (!id.startsWith('\0' + VIRTUAL_PREFIX)) return
       const bare = id.slice(1)
       if (bare === ADAPTER_ID) {
-        // Resolvability is checked here — the one hook with resolver access in
-        // dev, build and SSR alike — so failures name the option and the base
-        // directory instead of vite erroring on our internal virtual module.
-        // Virtual ids are emitted raw, never pre-resolved: `\0` cannot appear
-        // in an import specifier, so the other plugin's resolveId must run at
-        // import time. Bare specifiers likewise resolve from the project root.
+        // Resolvability is checked here — the one hook with resolver access across dev/build/SSR —
+        // so failures name the option and base dir (DESIGN §8b). Virtual ids are emitted raw, never
+        // pre-resolved: `\0` can't appear in a specifier, so the providing plugin's resolveId must
+        // run at import time.
         const emitted =
           kind === 'path' ? slash(isAbsolute(spec) ? spec : resolve(base, spec)) : spec
         const resolved = await this.resolve(emitted, slash(join(base, 'index.html'))).catch(
@@ -281,10 +265,9 @@ function wrapBuildHooks(
   buildEndCallbacks: ReadonlyArray<() => Promise<void> | void>,
 ): void {
   if (wrapped.has(siteConfig)) {
-    // The latch is per-SiteConfig but the callbacks are per-instance, so this
-    // instance's would never run. Two search() plugins on one site is
-    // unsupported — they also fight over the alias and the adapter virtual —
-    // and configResolved gets here once per instance, so this warns once.
+    // The latch is per-SiteConfig but callbacks are per-instance, so a second search() plugin's
+    // build hooks would silently never run without this warning; configResolved runs once per
+    // instance, so it fires exactly once.
     siteConfig.logger.warn(
       `${TAG} a second search() plugin is configured for this site, so the ${name} provider's ` +
         `build hooks are ignored — it will index nothing. Keep one search() call; its provider ` +
@@ -377,7 +360,7 @@ function advice(kind: SpecifierKind): string {
   )
 }
 
-/** npm package name of a bare specifier (`@scope/name` or `name`). */
+/** Npm package name of a bare specifier (`@scope/name` or `name`). */
 function packageOf(specifier: string): string {
   const [scope, name] = specifier.split('/')
   return specifier.startsWith('@') && name ? `${scope}/${name}` : scope!

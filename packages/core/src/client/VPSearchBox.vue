@@ -82,8 +82,8 @@ const groups = computed(() => {
       label: labelOf(result),
     })
   }
-  // grouping reorders results, so indexes must follow DISPLAY order — keyboard
-  // navigation, aria ids, and Enter all walk the flattened grouped list
+  // grouping reorders results, so indexes must follow DISPLAY order — keyboard navigation, aria
+  // ids, and Enter all walk the flattened grouped list
   let index = 0
   for (const group of out) for (const row of group.rows) row.index = index++
   return out
@@ -145,9 +145,8 @@ watch([status, results], () => {
 })
 
 /**
- * The dialog's own `close` event fires from a queued task — too late to be the
- * only signal, since a re-open landing in that gap would be swallowed. Every
- * close path we own flips this in the same task instead.
+ * Tracked ourselves, not read off the dialog's `close` event — that fires a task late, so a re-open
+ * landing in the gap would be swallowed.
  */
 let shown = false
 /** Whether the entry `show()` pushed is still the current one, hence ours to drop. */
@@ -163,14 +162,13 @@ async function show() {
   dialog.value?.showModal()
   if (!pushed) {
     pushed = true
-    // a history entry of our own, so the browser's back button closes the
-    // dialog; the scroll goes onto the entry below it the way the router saves
-    // it before its own pushes, or unwinding would land the page at the top
+    // our own entry, so Back closes the dialog; scroll is stashed on the entry below first, the
+    // router's own convention, or unwinding would reset it
     history.replaceState({ ...history.state, scrollPosition: window.scrollY }, '')
     history.pushState(null, '', null)
   }
-  // the restored query reaches the DOM on the next flush; selecting earlier
-  // would be undone by that value write
+  // the restored query reaches the DOM on the next flush; selecting earlier would be undone by that
+  // value write
   await nextTick()
   input.value?.focus()
   input.value?.select()
@@ -196,8 +194,8 @@ function unwind() {
 function onDialogClose() {
   if (!shown) return
   shown = false
-  // a task has passed since the dialog actually shut, so a re-open may have got
-  // here first; either way `open` is what the app wants, and it wins
+  // a task has passed since the dialog shut, so a re-open may have landed first; either way `open`
+  // reflects what the app wants now, so it wins
   if (open) void show()
   else {
     emit('close')
@@ -276,9 +274,8 @@ function onEnter(event: KeyboardEvent) {
   if (!row || event.target instanceof HTMLButtonElement) return
   // also suppresses the anchor's own activation when a result holds focus
   event.preventDefault()
-  // the destination replaces our entry rather than being pushed after we unwind
-  // it: `history.back()` lands a task later and the push would race it, whereas
-  // replacing leaves the stack reading [origin, destination] outright
+  // replaces our entry instead of pushing after unwind: history.back() lands a task later and would
+  // race the push, so replacing leaves the stack reading [origin, destination] outright
   const replace = pushed
   pushed = false
   close()
@@ -286,12 +283,12 @@ function onEnter(event: KeyboardEvent) {
 }
 
 function onResultClick(event: MouseEvent) {
-  // The router intercepts internal link clicks in the capture phase, so the SPA
-  // navigation has already started; going again would duplicate the history
-  // entry. Clicks it leaves alone (new tab, downloads) keep the dialog open.
+  // The router intercepts internal link clicks in the capture phase, so the SPA navigation has
+  // already started; going again would duplicate the history entry. Clicks it leaves alone (new
+  // tab, downloads) keep the dialog open.
   if (!event.defaultPrevented) return
-  // the destination sits on top of our entry by now, so unwinding would pop the
-  // destination instead; what stays behind duplicates the URL we came from
+  // the destination sits on top of our entry by now, so unwinding would pop the destination
+  // instead; what stays behind duplicates the URL we came from
   pushed = false
   close()
 }
@@ -936,9 +933,8 @@ kbd {
 </style>
 
 <style>
-/* The dialog's top layer keeps the page visible behind it, so the viewport is
-   still scrollable; reserving the scrollbar's gutter keeps hiding it from
-   shifting the layout. */
+/* The dialog's top layer keeps the page visible (and scrollable) behind it, so overflow is still
+   explicitly locked here; the gutter reservation keeps that from shifting the layout. */
 html:has(dialog.VPSearchBox[open]) {
   overflow: hidden;
   scrollbar-gutter: stable;

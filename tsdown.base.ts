@@ -6,11 +6,10 @@ import type { Rolldown, UserConfig } from 'tsdown'
 const RELATIVE_TS_RE = /(['"])(\.[^'"]*?)\.ts\1/g
 
 /**
- * Files that bypass rolldown's module graph keep their authored specifiers:
- * raw `.vue` assets (and their vue-tsc declarations) emitted by
- * `vueSfcPlugin`, hand-written ambient `.d.ts` files, and `new URL(...,
- * import.meta.url)` references inside chunks. This plugin ships the ambient
- * `.d.ts` files and points all of those specifiers at the built `.js` names.
+ * Ships this package's ambient `.d.ts` files as build output, and rewrites `.ts` specifiers to
+ * `.js` wherever rolldown's module graph never sees them to do it itself: those same `.d.ts` files,
+ * `.vue` assets and their vue-tsc declarations (from `vueSfcPlugin`), and `new URL(...,
+ * import.meta.url)` refs inside chunks.
  */
 function sourceAssets(dir: string): Rolldown.Plugin {
   return {

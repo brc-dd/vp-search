@@ -12,9 +12,8 @@ export interface UseSearchOptions {
 export type SearchStatus = 'idle' | 'loading' | 'done' | 'error'
 
 /**
- * Client wiring shared by any UI: debounce, adapter lazy-load memoization,
- * in-flight aborts, and stale-response dropping via a generation counter
- * (needed as well as aborts — sync adapters can't be aborted).
+ * Client wiring shared by any UI: debounce, memoized `load`, abort + a generation counter (needed
+ * too — sync adapters can't be aborted).
  */
 export function useSearch(options: UseSearchOptions) {
   const query = ref('')
@@ -63,9 +62,9 @@ export function useSearch(options: UseSearchOptions) {
       status.value = 'done'
     } catch (e) {
       if (gen !== generation) return
-      // every abort we issue bumps the generation first, so an AbortError still
-      // current is the adapter aborting itself — a failed search, but one whose
-      // `load` succeeded, so the memo stands and `retry()` won't reload
+      // every abort we issue bumps the generation first, so an AbortError still current is the
+      // adapter aborting itself — a failed search, but one whose `load` succeeded, so the memo
+      // stands and `retry()` won't reload
       if (!(e instanceof DOMException && e.name === 'AbortError')) {
         loading = undefined
         loaded = false

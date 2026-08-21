@@ -5,12 +5,9 @@ import { capturedResponse } from '../shared/fixtures/docsearch-response.ts'
 import { consumedPaths, drift, LEVELS, record, TYPES } from '../shared/schema.ts'
 
 /**
- * Schema-drift contract against the public VitePress DocSearch index. Skipped
- * unless VP_SEARCH_LIVE is set; CI runs it nightly, never on PRs. If Algolia
- * or the DocSearch crawler changes a field the adapter consumes, a test here
- * fails naming that field.
- *
- * Search-only public credentials, the same ones vitepress.dev ships.
+ * Schema-drift contract against the public VitePress DocSearch index — fails naming the field if
+ * Algolia or the crawler changes what the adapter reads. Public search-only credentials; gated on
+ * VP_SEARCH_LIVE (DESIGN §13).
  */
 const LIVE = Boolean(process.env['VP_SEARCH_LIVE'])
 
@@ -36,9 +33,8 @@ interface Capture {
 }
 
 /**
- * One real query, run through the real adapter with `fetch` teed rather than
- * replaced, so the request under test is the one src builds. Memoized: the
- * whole lane spends three network queries.
+ * One real query, run through the real adapter with `fetch` teed rather than replaced, so the
+ * request under test is the one src builds. Memoized: the whole lane spends three network queries.
  */
 const captures = new Map<string, Promise<Capture>>()
 /** Serialized: the tee stubs one global that two in-flight captures would fight over. */

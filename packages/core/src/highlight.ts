@@ -11,15 +11,13 @@ export function textOf(text: MarkedText): string {
 }
 
 /**
- * Parse backend-highlighted text where matches are wrapped in known tags
- * (Algolia/Meilisearch `highlightPreTag`/`highlightPostTag`, Typesense
- * `highlight_start_tag`, Pagefind `<mark>`). Ask the backend for sentinel
- * tags where possible so indexed text can never collide with them.
+ * Parses text with matches wrapped in `preTag`/`postTag` (DESIGN §2). Ask the backend for sentinel
+ * tags where possible, so indexed text can never collide with them.
  */
 export function fromTagged(value: string, preTag: string, postTag: string): MarkedText {
   const out: TextSegment[] = []
-  // empty runs are dropped and contiguous ones merged, so the UI renders one
-  // <mark> per run and never an empty segment
+  // empty runs are dropped and contiguous ones merged, so the UI renders one <mark> per run and
+  // never an empty segment
   const push = (text: string, mark = false) => {
     if (!text) return
     const last = out.at(-1)
@@ -30,8 +28,8 @@ export function fromTagged(value: string, preTag: string, postTag: string): Mark
   let rest = value
   while (rest) {
     const start = rest.indexOf(preTag)
-    // a post tag outside a marked run closes nothing; sentinel tags are control
-    // characters, so leaving one in display text is never right
+    // a post tag outside a marked run closes nothing; sentinel tags are control characters, so
+    // leaving one in display text is never right
     if (start < 0) {
       push(rest.replaceAll(postTag, ''))
       break
@@ -49,12 +47,7 @@ export function fromTagged(value: string, preTag: string, postTag: string): Mark
   return out
 }
 
-/**
- * Character offsets, `end` exclusive. Backends with other conventions must be
- * converted first: Fuse.js and @orama/highlight report INCLUSIVE ends (+1),
- * Lunr reports [start, length], Meilisearch reports UTF-8 BYTE offsets,
- * Pagefind reports word indices.
- */
+/** Character offsets, `end` exclusive; callers convert other conventions first (DESIGN §2). */
 export interface HighlightRange {
   start: number
   end: number
@@ -88,9 +81,8 @@ const NAMED_ENTITIES: Record<string, string> = {
 }
 
 /**
- * For backends whose stored/highlighted text is HTML-entity-escaped (the
- * DocSearch crawler, Pagefind excerpts). Segments are plain text — the UI
- * escapes at render — so entities must be decoded exactly once on ingest.
+ * Decodes HTML entities in backend-escaped text (the DocSearch crawler, Pagefind excerpts).
+ * Segments are plain text decoded once on ingest — the UI escapes at render.
  */
 export function unescapeEntities(text: string): string {
   return text.replace(/&(#x?[\da-f]+|[a-z]+);/gi, (match, code: string) => {
@@ -105,9 +97,8 @@ export function unescapeEntities(text: string): string {
 }
 
 /**
- * Recompute marks from matched terms, for backends that report no positions
- * (MiniSearch, FlexSearch). Longest-first so a short term can't shadow a
- * longer one — same trick as VitePress's local search.
+ * Recomputes marks from matched terms, for backends with no positions (DESIGN §2). Longest-first,
+ * so a short term can't shadow a longer one.
  */
 export function fromTerms(text: string, terms: readonly string[]): MarkedText {
   const escaped = terms

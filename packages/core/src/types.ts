@@ -1,6 +1,6 @@
 /**
- * The shared search data format. Every backend adapter transforms its native
- * output into these shapes; the UI renders only these shapes.
+ * The shared search data format. Every adapter transforms its backend's output into these shapes;
+ * the UI renders only these.
  */
 
 /** One run of text within a highlightable string. */
@@ -11,9 +11,8 @@ export interface TextSegment {
 }
 
 /**
- * Highlightable text as ordered segments; concatenating `text` yields the
- * plain string. Kept as data rather than HTML so the UI owns escaping,
- * mark styling, and screen-reader output.
+ * Highlightable text as ordered segments; concatenating `text` yields the plain string. Kept as
+ * data rather than HTML so the UI owns escaping, mark styling, and screen-reader output.
  */
 export type MarkedText = TextSegment[]
 
@@ -31,12 +30,16 @@ export interface SearchResult {
   titles?: MarkedText[]
   /** Match-scoped snippet of body text. */
   excerpt?: MarkedText
-  /** Top-level grouping label (e.g. DocSearch `hierarchy.lvl0`). The UI falls
-   * back to grouping by page (`url` without its anchor) when absent. */
+  /**
+   * Top-level grouping label (e.g. DocSearch `hierarchy.lvl0`). The UI falls back to grouping by
+   * page (`url` without its anchor) when absent.
+   */
   group?: string
   kind?: ResultKind
-  /** Backend-relative, for ordering/debugging only — never comparable across
-   * backends and never shown to users. */
+  /**
+   * Backend-relative, for ordering/debugging only — never comparable across backends and never
+   * shown to users.
+   */
   score?: number
   /** The untouched backend hit, for user-level transforms. */
   raw?: unknown
@@ -61,8 +64,10 @@ export interface SearchContext {
   localeIndex?: string
   /** Site lang, e.g. 'en-US'. For language-filtered backends. */
   lang?: string
-  /** Cap on returned results. Omitted = the backend's own default for
-   * remote adapters, uncapped for local ones. */
+  /**
+   * Cap on returned results. Omitted = the backend's own default for remote adapters, uncapped for
+   * local ones.
+   */
   limit?: number
   /** Aborted when the query is superseded; pass to fetch. */
   signal?: AbortSignal

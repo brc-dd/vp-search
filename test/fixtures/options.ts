@@ -1,8 +1,8 @@
 import type { SearchOptions } from '../../packages/core/src/translations.ts'
 
 /**
- * Stand-in for `virtual:vp-search/options`, which core's node plugin emits as
- * `JSON.stringify({ translations, locales })` — so only JSON-able values here.
+ * Stand-in for `virtual:vp-search/options`, which core's node plugin emits as `JSON.stringify({
+ * translations, locales })` — so only JSON-able values here.
  */
 
 function defaults(): SearchOptions {

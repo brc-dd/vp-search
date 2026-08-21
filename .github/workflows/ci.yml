@@ -12,21 +12,20 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Deterministic clock and locale for every process, including vitest's
-  # globalSetup and the vitepress builds — test.env only reaches test workers.
+  # test.env only reaches vitest workers; globalSetup/vitepress builds need it set here too (DESIGN
+  # §13, Determinism).
   TZ: UTC
   LANG: en_US.UTF-8
   FORCE_COLOR: '1'
-  # minimumReleaseAge/trustPolicy re-verification of the whole lockfile costs
-  # ~15-20s per install; the check job below opts back in so it still happens
-  # exactly once per run.
+  # Skips the ~15-20s lockfile re-verification (minimumReleaseAge/trustPolicy); the check job below
+  # re-enables it, so it still runs once per run.
   PNPM_CONFIG_TRUST_LOCKFILE: 'true'
 
 jobs:
   # Compile + publish-shape validation. Owns the lockfile verification.
   check:
-    # Back on 24.04 everywhere: a 26.04-preview probe hit repeated dev-mode
-    # renderer crashes (zero ever on 24.04) — re-probe when the image GAs.
+    # Pinned to 24.04 everywhere: the 26.04-preview image caused e2e crashes and was fully reverted
+    # — re-probe at GA (DESIGN §13).
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -47,9 +46,8 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-      # Build precedes typecheck: vue-tsc -p test checks the integrity suite
-      # against the real dist .d.ts, which doubles as validation of the emitted
-      # declarations.
+      # Build before typecheck: vue-tsc -p test checks the integrity suite against the real dist
+      # .d.ts, doubling as emitted-declaration validation.
       - name: Build packages
         run: pnpm build
 
@@ -62,7 +60,7 @@ jobs:
       - name: Integrity tests
         run: pnpm test:integrity
 
-  # Fast hermetic lane: no build, no browser. Reddest fastest.
+  # Hermetic, build-free lane — goes red fastest.
   unit:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -82,8 +80,7 @@ jobs:
       - name: Unit tests
         run: pnpm test:unit
 
-  # Real browser over the dedicated fixture site, dev and built output — the
-  # two paths genuinely diverge (inlined dev locales vs fetched artifacts).
+  # Fixture site; dev + built output both run — the paths genuinely diverge (DESIGN §13).
   e2e:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -109,9 +106,8 @@ jobs:
         with:
           cache: true
 
-      # ~77MB headless shell; vitest/playwright drive it by default, no full
-      # Chromium needed. Not cached: restore time ≈ download time at one
-      # browser in one job (playwright's own CI guidance).
+      # --only-shell suffices: vitest/playwright drive it by default. Uncached — restore ≈ download
+      # time for one browser in one job (DESIGN §13).
       - name: Install Chromium headless shell
         run: pnpm --filter vp-search-e2e exec playwright-core install chromium --only-shell
 
@@ -134,9 +130,8 @@ jobs:
           persist-credentials: false
 
       - name: actionlint
-        # temporarily the actively-released rhysd/actionlint fork:
-        # raven-actions bundles a linter whose runner-label DB predates the
-        # ubuntu-26.04 preview label; switch back when upstream catches up
+        # kjanat/actionlint fork, not raven-actions: its label DB predates the ubuntu-26.04 label.
+        # Switch back when upstream catches up (DESIGN §13).
         uses: kjanat/actionlint@7c5b0a3880b3d29c51072b1e5e0730e5988f8b7d # v1.12.0
 
       - name: zizmor

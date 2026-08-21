@@ -1,6 +1,6 @@
 /**
- * Two dynamic routes, each with a token of its own. Only a build renders them,
- * so only a build's index can contain those tokens — DESIGN §11.
+ * Two dynamic routes, each with a token of its own. Only a build renders them, so only a build's
+ * index can contain those tokens — DESIGN §11.
  */
 export default {
   paths: () => [

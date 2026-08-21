@@ -245,9 +245,11 @@ describe('searchOptions', () => {
 })
 
 describe('artifact options carry data, never code (#3685)', () => {
-  /** An artifact that smuggles a `tokenize` past the type, as a tampered or
-   * hand-written one could. `loadTier` spreads `options` and then assigns its
-   * own tokenizer, so this is a guard on that assignment's ORDER. */
+  /**
+   * An artifact that smuggles a `tokenize` past the type, as a tampered or hand-written one could.
+   * `loadTier` spreads `options` and then assigns its own tokenizer, so this is a guard on that
+   * assignment's ORDER.
+   */
   const smuggled = (): Artifact => {
     const artifact = buildArtifact({
       fields: [...CONTENT_FIELDS],
@@ -274,9 +276,11 @@ describe('artifact options carry data, never code (#3685)', () => {
 })
 
 describe('result shape', () => {
-  /** DESIGN §1: the required core plus the optional fields, nothing else.
-   * `raw` is absent by choice on this adapter (postMessage weight, TODO §6);
-   * the allowlist is what a result MAY carry, not what it must. */
+  /**
+   * DESIGN §1: the required core plus the optional fields, nothing else. `raw` is absent by choice
+   * on this adapter (postMessage weight, TODO §6); the allowlist is what a result MAY carry, not
+   * what it must.
+   */
   const ALLOWED = ['id', 'url', 'title', 'titles', 'excerpt', 'group', 'kind', 'score', 'raw']
 
   const everyResult = (): SearchResponse['results'] => [

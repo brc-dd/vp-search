@@ -1,7 +1,7 @@
 /**
- * Artifact server + fetch gate for the worker lane. The gate can hold a URL
- * open until the test releases it, which is what makes the tier-ordering and
- * superseded-init races deterministic instead of timing-dependent.
+ * Artifact server + fetch gate for the worker lane. The gate can hold a URL open until the test
+ * releases it, which is what makes the tier-ordering and superseded-init races deterministic
+ * instead of timing-dependent.
  */
 
 import type { SearchResponse } from '@vp-search/core'

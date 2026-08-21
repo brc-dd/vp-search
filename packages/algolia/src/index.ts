@@ -3,10 +3,7 @@ import type { AlgoliaAdapterOptions } from './adapter.ts'
 
 export { algoliaAdapter, type AlgoliaAdapterOptions, type DocSearchHit } from './adapter.ts'
 
-/**
- * DocSearch-shaped Algolia search as a vp-search provider. Remote-only: no
- * node-side hooks, just the adapter and its options handed to the client.
- */
+/** DocSearch-shaped Algolia search as a vp-search provider — remote-only, no node-side hooks. */
 export function algolia(options: AlgoliaAdapterOptions): ProviderDefinition {
   return {
     name: 'algolia',

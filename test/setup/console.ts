@@ -1,14 +1,12 @@
 import { afterEach, beforeEach, vi, type MockInstance } from 'vitest'
 
 /**
- * Console tripwire (the vuejs/core pattern): a test that logs a warning or an
- * error fails unless it claims the output with {@link expectConsole}. Vue's own
- * warnings — bad props, duplicate `v-for` keys, unhandled errors in watchers —
- * all arrive this way and would otherwise scroll past a green run.
+ * Console tripwire: a test fails if it logs a warning or error without claiming it via
+ * {@link expectConsole} — catches Vue warnings (bad props, duplicate keys, watcher errors) that
+ * would otherwise pass silently.
  *
- * Register it as a `setupFiles` entry on the projects it should guard; a file
- * that imports {@link expectConsole} arms it for itself either way, since these
- * hooks register when the module is evaluated.
+ * Register as a `setupFiles` entry, or import {@link expectConsole} directly — both arm it, since
+ * these hooks register on module evaluation.
  */
 
 export type ConsoleLevel = 'error' | 'warn'
@@ -22,11 +20,8 @@ const spies = new Map<ConsoleLevel, ConsoleSpy>()
 const claims = new Map<ConsoleLevel, string[]>()
 
 /**
- * Claims console output the current test is supposed to produce: calls whose
- * text contains one of `substrings` pass, and every substring must match at
- * least one call, so a claim cannot outlive the behaviour it covers. Call it
- * before the output happens; the returned spy is the one recording it, for
- * asserting on the arguments themselves.
+ * Claims console output for the current test: every substring must match at least one call and vice
+ * versa, or the test fails. Returns the spy so callers can assert on the exact arguments.
  */
 export function expectConsole(level: ConsoleLevel, ...substrings: string[]): ConsoleSpy {
   const spy = spies.get(level)

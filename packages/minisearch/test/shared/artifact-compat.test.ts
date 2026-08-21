@@ -1,8 +1,7 @@
 /**
- * Back-compat over a frozen `v: 1` pair (see `../fixtures/artifact-v1.ts` for
- * its provenance and corpus). Everything here is what a reader's browser does
- * with an artifact this repo emitted months ago: parse it, `loadTier` it, and
- * search it with today's engine.
+ * Back-compat over a frozen `v: 1` pair (see `../fixtures/artifact-v1.ts` for its provenance and
+ * corpus). Everything here is what a reader's browser does with an artifact this repo emitted
+ * months ago: parse it, `loadTier` it, and search it with today's engine.
  */
 
 import { textOf } from '@vp-search/core'

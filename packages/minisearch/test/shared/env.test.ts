@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-/**
- * Guard so an ICU-flavoured failure names itself: without full ICU,
- * `Intl.Segmenter` degrades to no word segmentation for CJK and every
- * tokenizer/CJK expectation in this package fails for one reason.
- */
+/** Env guard so an ICU-flavoured failure names itself — DESIGN §13. */
 
 // `icu_small` is real at runtime but absent from @types/node's ProcessConfig.
 const variables = process.config.variables as unknown as Record<string, unknown>

@@ -1,7 +1,7 @@
 /**
- * Artifact builders for the engine tests. Everything here mirrors what the
- * node indexer emits: the real `minisearch` dependency, `createTokenizer` for
- * the artifact's `lang`, and a `JSON.stringify`d index.
+ * Artifact builders for the engine tests. Everything here mirrors what the node indexer emits: the
+ * real `minisearch` dependency, `createTokenizer` for the artifact's `lang`, and a
+ * `JSON.stringify`d index.
  */
 
 import type { MarkedText, SearchResponse, SearchResult } from '@vp-search/core'
@@ -28,8 +28,8 @@ export const LONG = [
 ].join(' ')
 
 /**
- * Same shape, in a script with no word spacing — deliberately longer than two
- * excerpt context windows so the character budget actually bites.
+ * Same shape, in a script with no word spacing — deliberately longer than two excerpt context
+ * windows so the character budget actually bites.
  */
 export const ZH_LONG = [
   'VitePress 是一个静态站点生成器，专为构建以内容为中心的 docs 网站而设计。',

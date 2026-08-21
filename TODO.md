@@ -50,8 +50,8 @@ Pending:
 - [ ] Policies: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue/PR templates
 - [ ] CI: shipped 2026-08, extended with the test suites (`ci.yml`: parallel check/unit/e2e-matrix lanes — build precedes typecheck because `vue-tsc -p test` validates the dist declarations; integrity tests in check; `--only-shell` chromium, uncached on purpose; TZ/LANG/FORCE_COLOR pinned; lockfile trust-policy verified once per run in check via `PNPM_CONFIG_TRUST_LOCKFILE`; `nightly.yml`: 3× seeded shuffle + `--detectAsyncLeaks` + the live Algolia contract). Still open: publish workflow (OIDC)
 - [ ] Repo polishing pass: README rewrite for the split layout, badges, adapter-authoring guide
-- [ ] Comment-density cleanup across packages: comments are very verbose today; thin them to the load-bearing ones once APIs are stabler (deferred, like the DESIGN.md distill below)
-- [ ] Distill + reorganize DESIGN.md for human readability: keep the format spec, contracts, mapping tables, current architecture, ceilings, and open questions; compress shipped-decision rationale to a line or two (git history keeps the long form); fold survey notes into the sections they justify
+- [x] Comment-density cleanup (2026-08): JSDoc describes contracts, inline comments carry only whys; background retellings replaced with DESIGN § pointers; multi-line comments wrapped to print width
+- [x] DESIGN.md distilled (2026-08): states decided/rejected/open with one-line whys; survey scaffolding gone, long form in git history
 
 ## 4. Docs & deployments
 
@@ -95,4 +95,4 @@ Pending:
 - [ ] Pagefind (the >3k-page scale story; no typo tolerance, 52 MB binary as peer dep — DESIGN §11 tradeoffs)
 - [ ] Meilisearch / Typesense (mappings specced in DESIGN §4; mechanical)
 - [ ] zbsearch — re-checked 2026-08: `zbsearch@4` is now fumadocs-core's default engine; core/stemmers/highlight install clean, but tokenizers + plugin-match-highlight still ship `workspace:*` (offsets path blocked) — re-check when those publish (hedge signal: Fumapress v1, same author, defaulted to FlexSearch instead)
-- [ ] `custom` example: paid Algolia with own record schema — needs the promised hit-transform option first (DESIGN §4 row): `toResult` is hard-wired to `DocSearchHit`, so overriding `attributesToRetrieve` alone yields empty-titled results today. Bundle an `attributesToSnippet`/snippet-window option into the same design (it became adapter-owned in the 2026-08 searchParams hardening), and document that `lang` facet values are index conventions, not BCP tags (the vitepress index uses `zh-Hans`, not `zh-CN` — mismatches return zero hits silently)
+- [ ] Non-DocSearch Algolia record schemas — undecided whether the demand is real: `toResult` is hard-wired to `DocSearchHit` (overriding `attributesToRetrieve` alone yields empty-titled results), so generalizing means a hit-transform option plus an `attributesToSnippet` window option (both adapter-owned since the searchParams hardening). Separately, document that `lang` facet values are index conventions, not BCP tags (the vitepress index uses `zh-Hans`, not `zh-CN` — mismatches return zero hits silently)

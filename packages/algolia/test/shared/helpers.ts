@@ -19,8 +19,8 @@ export function makeAdapter(options: Partial<AlgoliaAdapterOptions> = {}) {
 export type FetchMock = Mock<typeof fetch>
 
 /**
- * Replaces the global `fetch` and asserts the replacement took, so a test can
- * never silently reach the network.
+ * Replaces the global `fetch` and asserts the replacement took, so a test can never silently reach
+ * the network.
  */
 export function stubFetch(
   impl: (...args: Parameters<typeof fetch>) => Promise<Response>,

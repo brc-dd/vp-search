@@ -13,10 +13,8 @@ env:
   FORCE_COLOR: '1'
 
 jobs:
-  # Order-dependence hunt: the PR lanes run with vitest's stable order, so
-  # inter-test coupling only surfaces here. Seeded from the run id because
-  # vitest never prints the seed it picks on its own; three legs give three
-  # orders per night.
+  # Hunts inter-test coupling the PR lanes' stable order hides. Seed = run id (vitest never prints
+  # its own) + matrix leg, for three orders a night.
   shuffle:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -37,7 +35,7 @@ jobs:
         with:
           cache: true
 
-      # The integrity project validates dist, so build first.
+      # integrity needs dist built first.
       - name: Build packages
         run: pnpm build
 
@@ -50,8 +48,8 @@ jobs:
           --sequence.shuffle --sequence.seed="$SEED"
           --detectAsyncLeaks
 
-  # Schema-drift contract against the public DocSearch index (search-only key).
-  # Network-dependent by design, so it lives here and never gates PRs.
+  # Live DocSearch schema-drift check (search-only key). Network-dependent — nightly only, never
+  # gates PRs (DESIGN §13).
   live:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -69,6 +67,4 @@ jobs:
           cache: true
 
       - name: Algolia schema-drift contract
-        env:
-          VP_SEARCH_LIVE: '1'
-        run: pnpm vitest run -p live
+        run: pnpm test:live

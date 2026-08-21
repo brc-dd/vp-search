@@ -182,10 +182,10 @@ describe('request shape', () => {
 })
 
 /**
- * DESIGN §3: "adapters translate: Algolia `facetFilters: lang:*` — core strips
- * and re-injects these". The adapter owns that facet: caller filters survive,
- * their `lang:*` entries do not. A stale lang value returns zero hits silently
- * on the public index, which is what makes the strip worth its own block.
+ * DESIGN §3: "adapters translate: Algolia `facetFilters: lang:*` — core strips and re-injects
+ * these". The adapter owns that facet: caller filters survive, their `lang:*` entries do not. A
+ * stale lang value returns zero hits silently on the public index, which is what makes the strip
+ * worth its own block.
  */
 describe('facetFilters: the lang facet is the adapter’s', () => {
   /** Runs one search and returns the facetFilters the body carried, if any. */

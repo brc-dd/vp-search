@@ -1,14 +1,10 @@
 /**
- * `packages/core/dist/client/*.vue` after the vue-sfc-transformer build: the
- * dist SFCs must survive the real consumer pipeline (@vue/compiler-sfc, incl.
- * postcss scoping), carry the TS source's binding metadata unchanged, and keep
- * their style blocks byte-for-byte modulo the transformer's blank-line
- * normalize.
- *
- * This is the guard on `patches/vue-sfc-transformer.patch` — oxc dropping
- * template-only imports, and the synthesized `export {}`. If the patch stops
- * applying, or an upstream release changes shape, it fails here rather than in
- * a consumer's build. Ported from `scratch/validate-sfc.ts`.
+ * Guards `patches/vue-sfc-transformer.patch`: the built SFCs (`packages/core/dist/client/*.vue`)
+ * must survive the real consumer pipeline (`@vue/compiler-sfc`, postcss scoping) with the TS
+ * source's binding metadata and style blocks unchanged (modulo the transformer's blank-line
+ * normalize) — catches oxc dropping template-only imports and the synthesized `export {}`. If the
+ * patch stops applying, or an upstream release changes shape, this fails here rather than in a
+ * consumer's build.
  */
 import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -33,8 +29,10 @@ const postcss = createRequire(req.resolve('vite/package.json'))('postcss') as Po
 
 const COMPONENTS = ['VPMarkedText', 'VPNavBarSearch', 'VPSearchBox']
 
-/** The transformer's own whitespace normalization (rolldown plugin): collapse
- * 3+ newlines to a blank line, trim leading/trailing blank lines. */
+/**
+ * The transformer's own whitespace normalization (rolldown plugin): collapse 3+ newlines to a blank
+ * line, trim leading/trailing blank lines.
+ */
 const normalize = (s: string) => s.replace(/(\n\n)\n+/g, '\n\n').replace(/^\s*\n|\n\s*$/g, '')
 
 /** Modern CSS the transformer must pass through untouched, never lower. */
@@ -53,8 +51,8 @@ const featuresIn = (css: string) =>
 
 type Side = 'src' | 'dist'
 
-// Parsing and script compilation are lazy + memoized: nothing may touch
-// `dist/` at collection time, or a clean checkout would fail instead of skip.
+// Parsing and script compilation are lazy + memoized: nothing may touch `dist/` at collection time,
+// or a clean checkout would fail instead of skip.
 const parses = new Map<string, SFCParseResult>()
 const scripts = new Map<string, BindingMetadata | undefined>()
 

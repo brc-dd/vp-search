@@ -17,11 +17,8 @@ const MANIFEST_MODULE = 'manifest'
 const DEV_ARTIFACT_RE = new RegExp(`/${DEV_SUBDIR}/([^/?]+)\\.(titles|content)\\.json(?:\\?|$)`)
 
 /**
- * MiniSearch-backed local search: per-locale index artifacts emitted at build
- * time and queried in a module worker. Indexing hangs off VitePress's own
- * build hooks rather than a pre-render vite chunk, so it sees final HTML:
- * dynamic routes, vite transforms and frontmatter interpolation are all in
- * the index.
+ * MiniSearch-backed local search: per-locale artifacts built and queried via a worker, indexed off
+ * VitePress's real build hooks rather than a pre-render chunk (DESIGN §11).
  */
 export function minisearch(options: MinisearchProviderOptions = {}): ProviderDefinition {
   let siteConfig: SiteConfig<DefaultTheme.Config> | undefined
@@ -33,8 +30,8 @@ export function minisearch(options: MinisearchProviderOptions = {}): ProviderDef
   return {
     name: 'minisearch',
     clientModule: '@vp-search/minisearch/adapter',
-    // The worker imports minisearch through this package, which is excluded
-    // from prebundling; without this the dev cold-open waterfalls on it.
+    // The worker imports minisearch directly — without this hint, dev's cold-open waterfalls on it
+    // (DESIGN §6).
     clientDeps: ['minisearch'],
 
     node: {
@@ -54,8 +51,8 @@ export function minisearch(options: MinisearchProviderOptions = {}): ProviderDef
 
         api.addVirtualModule(MANIFEST_MODULE, async () => {
           if (!dev) {
-            // Artifact names are only known after the bundle closes, so a build
-            // defers the locale map to a manifest fetched at runtime.
+            // Artifact names are only known after the bundle closes, so a build defers the locale
+            // map to a manifest fetched at runtime.
             return `export default ${JSON.stringify({ base, locales: null, manifest: MANIFEST_NAME })}\n`
           }
           await dev.ready()

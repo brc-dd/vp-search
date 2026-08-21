@@ -1,8 +1,7 @@
 /**
- * Shared by the node indexer and the search worker. MiniSearch never
- * serializes its tokenizer, so both sides must rebuild an identical one from
- * the artifact's `lang` — any drift silently makes indexed terms unsearchable.
- * Keep this module dependency-free: the worker imports it too.
+ * Shared by the node indexer and the search worker. MiniSearch never serializes its tokenizer, so
+ * both sides must rebuild an identical one from the artifact's `lang` — any drift silently makes
+ * indexed terms unsearchable. Keep this module dependency-free: the worker imports it too.
  */
 
 /** MiniSearch's own default split, used when `Intl.Segmenter` is unavailable. */
@@ -10,11 +9,7 @@ const SPACE_OR_PUNCTUATION = /[\n\r\p{Z}\p{P}]+/u
 
 export type Tokenizer = (text: string) => string[]
 
-/**
- * Word segmentation for `lang`. `Intl.Segmenter` is what makes CJK searchable
- * without shipping dictionaries: it yields real words for scripts that do not
- * separate them with spaces, and matches the regex split elsewhere.
- */
+/** Builds a tokenizer for `lang` — `Intl.Segmenter` when available, else punctuation-split. */
 export function createTokenizer(lang: string): Tokenizer {
   const segmenter = createSegmenter(lang)
   if (!segmenter) {

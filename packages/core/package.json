@@ -2,9 +2,27 @@
   "name": "@vp-search/core",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
-  "description": "Backend-agnostic search for VitePress — one accessible UI, swappable search providers.",
+  "description": "Pluggable search for VitePress — an accessible search dialog, a shared result format, and a provider contract any backend can implement.",
+  "keywords": [
+    "documentation",
+    "search",
+    "site-search",
+    "vitepress",
+    "vitepress-plugin",
+    "vue"
+  ],
   "license": "MIT",
+  "author": "Divyansh Singh <brc-dd@hotmail.com> (https://github.com/brc-dd)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brc-dd/vp-search.git",
+    "directory": "packages/core"
+  },
+  "funding": "https://github.com/sponsors/brc-dd",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "sideEffects": [
     "**/*.vue"
   ],
@@ -22,21 +40,9 @@
       "./package.json": "./package.json"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc -p tsconfig.shared.json && vue-tsc -p tsconfig.client.json && tsc -p tsconfig.node.json && vue-tsc -p test"
-  },
-  "peerDependencies": {
-    "vitepress": "^2.0.0-alpha.1",
-    "vue": "^3.5.0"
-  },
-  "peerDependenciesMeta": {
-    "vitepress": {
-      "optional": true
-    }
   },
   "dependencies": {
     "@vueuse/core": "^14.4.0"
@@ -49,5 +55,14 @@
     "vitepress": "2.0.0-alpha.19",
     "vue": "^3.5.41",
     "vue-sfc-transformer": "^0.2.5"
+  },
+  "peerDependencies": {
+    "vitepress": "^2.0.0-alpha.1",
+    "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "vitepress": {
+      "optional": true
+    }
   }
 }

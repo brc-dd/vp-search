@@ -4,10 +4,10 @@ import type { Plugin } from 'vite'
 import { defineConfig } from 'vitepress'
 
 /**
- * Stands in for any plugin that rewrites markdown before VitePress renders it
- * (#4979). `enforce: 'pre'` puts it ahead of the markdown-to-Vue transform, so
- * the rendered page carries `xformtoken4979` while the file on disk — all the
- * dev indexer ever reads — still carries `rawslot4979x`.
+ * Stands in for any plugin that rewrites markdown before VitePress renders it (#4979). `enforce:
+ * 'pre'` puts it ahead of the markdown-to-Vue transform, so the rendered page carries
+ * `xformtoken4979` while the file on disk — all the dev indexer ever reads — still carries
+ * `rawslot4979x`.
  */
 function injectToken(): Plugin {
   return {
@@ -21,21 +21,19 @@ function injectToken(): Plugin {
 }
 
 /**
- * Fixture site for the e2e lane. Deliberately tiny and self-contained —
- * `examples/docs` is vendored upstream content and would churn on every sync.
+ * Fixture site for the e2e lane — tiny and self-contained, not `examples/docs` (DESIGN §13: that's
+ * vendored upstream content and would churn on every sync).
  *
- * Page bodies carry unique grep-able tokens (`quokka*`, `zhonlytoken`, …) so
- * every assertion can name exactly one record. `cleanUrls` stays off: `.html`
- * ids resolve identically under `vitepress dev` and the preview server, which
- * keeps the dev/build double pass comparing like with like.
+ * Page bodies carry unique grep-able tokens (`quokka*`, `zhonlytoken`, …) so every assertion can
+ * name exactly one record. `cleanUrls` stays off: `.html` ids resolve identically under `vitepress
+ * dev` and the preview server, which keeps the dev/build double pass comparing like with like.
  */
 export default defineConfig({
   title: 'VP Search E2E',
   description: 'Fixture site for the vp-search end-to-end suite.',
 
-  // `parts/` holds `@include` partials and snippet sources, not pages: without
-  // this they would be routes of their own and their tokens would be findable
-  // at two URLs.
+  // `parts/` holds `@include` partials and snippet sources, not pages: without this they would be
+  // routes of their own and their tokens would be findable at two URLs.
   srcExclude: ['**/parts/*.md'],
 
   themeConfig: {

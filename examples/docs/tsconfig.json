@@ -3,8 +3,6 @@
   "compilerOptions": {
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["node"],
-    // Vendored from the upstream VitePress docs; keep it at upstream's
-    // strictness instead of churning it against every sync.
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
     "noPropertyAccessFromIndexSignature": false,

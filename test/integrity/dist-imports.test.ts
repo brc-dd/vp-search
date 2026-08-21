@@ -1,14 +1,10 @@
 /**
- * Smoke test for what `pnpm build` actually emits. The workspace `exports`
- * maps point at `src/` and only flip to `dist/` at pack time, so every other
- * suite exercises the sources; these tests import the built files DIRECTLY by
- * relative path, which is the only way the published artifact gets covered.
- * (h3's `dist.test.ts` pattern — the bug that motivated it was a bundler
- * dropping a side-effect check, so the published package behaved differently
- * from its source.)
+ * Smoke test for what `pnpm build` actually emits. The workspace `exports` map points at `src/` and
+ * only flips to `dist/` at pack time, so every other suite exercises the sources — these import the
+ * built files directly by relative path, the only way the published artifact gets covered.
  *
- * Bare specifiers *inside* dist still resolve to workspace `src/` here; that is
- * fine, the subject is the emitted module, not its dependencies.
+ * Bare specifiers _inside_ dist still resolve to workspace `src/` here; that's fine — the subject
+ * is the emitted module, not its dependencies.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -22,8 +18,10 @@ const SFCS = ['VPMarkedText', 'VPNavBarSearch', 'VPSearchBox']
 
 const short = (file: string) => relative(PACKAGES, file).replaceAll(sep, '/')
 
-/** Lazy: nothing may stat `dist/` at collection time, or a clean checkout
- * would fail instead of skip. */
+/**
+ * Lazy: nothing may stat `dist/` at collection time, or a clean checkout would fail instead of
+ * skip.
+ */
 function distFiles(): string[] {
   return NAMES.flatMap((name) => {
     const dist = join(PACKAGES, name, 'dist')
@@ -109,8 +107,8 @@ describe.skipIf(!BUILT)(SUITE, () => {
       expect(t('modal.footer.selectText')).toBe('to select')
     })
 
-    // the default strings carry `{count}`/`{query}` placeholders, so anyone
-    // building a UI on `createSearchTranslate` needs it
+    // the default strings carry `{count}`/`{query}` placeholders, so anyone building a UI on
+    // `createSearchTranslate` needs it
     test('index re-exports interpolate', async () => {
       const core = await import('../../packages/core/dist/index.js')
       expect(core).toHaveProperty('interpolate', expect.any(Function))
@@ -310,10 +308,10 @@ describe.skipIf(!BUILT)(SUITE, () => {
 
   describe('eager module graph', () => {
     /**
-     * What a `<script type="module">` would pull in before running a line of
-     * this file: static `import`/`export … from`, bare side-effect imports
-     * included. Dynamic `import(…)` is deliberately not counted — deferring a
-     * dependency to a call is the whole point of the shapes asserted below.
+     * What a `<script type="module">` would pull in before running a line of this file: static
+     * `import`/`export … from`, bare side-effect imports included. Dynamic `import(…)` is
+     * deliberately not counted — deferring a dependency to a call is the whole point of the shapes
+     * asserted below.
      */
     function staticImports(file: string): string[] {
       const code = readFileSync(file, 'utf8')
@@ -323,10 +321,9 @@ describe.skipIf(!BUILT)(SUITE, () => {
     }
 
     test('the minisearch adapter never statically imports the engine', () => {
-      // The §3 payload claim: opening a page costs the adapter, not MiniSearch.
-      // The engine is behind `new Worker(new URL('./worker.js', …))`, which a
-      // bundler follows into a separate chunk and a browser fetches only when
-      // the worker starts.
+      // The §3 payload claim: opening a page costs the adapter, not MiniSearch. The engine is
+      // behind `new Worker(new URL('./worker.js', …))`, which a bundler follows into a separate
+      // chunk and a browser fetches only when the worker starts.
       const file = join(PACKAGES, 'minisearch/dist/adapter.js')
       expect(staticImports(file)).toEqual(['@vp-search/core'])
       expect(readFileSync(file, 'utf8')).toMatch(
@@ -335,8 +332,8 @@ describe.skipIf(!BUILT)(SUITE, () => {
     })
 
     test('the worker is where the engine dependency actually lands', () => {
-      // The other half: if `minisearch` stopped being reachable from the worker
-      // graph the test above would still pass while search silently broke.
+      // The other half: if `minisearch` stopped being reachable from the worker graph the test
+      // above would still pass while search silently broke.
       const graph = ['worker.js', 'engine.js'].flatMap((name) =>
         staticImports(join(PACKAGES, 'minisearch/dist', name)),
       )
@@ -344,8 +341,8 @@ describe.skipIf(!BUILT)(SUITE, () => {
     })
 
     test('the algolia adapter imports nothing outside @vp-search/core', () => {
-      // Dep-free by construction (DESIGN §8): plain `fetch`, no algoliasearch
-      // client, no DocSearch UI bundle — not even a lazy one.
+      // Dep-free by construction (DESIGN §8): plain `fetch`, no algoliasearch client, no DocSearch
+      // UI bundle — not even a lazy one.
       const file = join(PACKAGES, 'algolia/dist/adapter.js')
       expect(staticImports(file)).toEqual(['@vp-search/core'])
       expect(readFileSync(file, 'utf8')).not.toMatch(/\bimport\s*\(/)

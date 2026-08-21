@@ -3,8 +3,8 @@ import { fromTerms, plain } from '../../packages/core/src/highlight.ts'
 import type { ResultKind, SearchResponse, SearchResult } from '../../packages/core/src/types.ts'
 
 /**
- * Stand-in for `virtual:vp-search/adapter`, which exports an already-constructed
- * adapter (core's node plugin emits `export default create(options)`).
+ * Stand-in for `virtual:vp-search/adapter`, which exports an already-constructed adapter (core's
+ * node plugin emits `export default create(options)`).
  */
 
 export interface FixtureDoc {

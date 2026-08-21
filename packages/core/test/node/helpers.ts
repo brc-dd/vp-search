@@ -14,9 +14,8 @@ import type { SiteConfig } from 'vitepress'
 import { onTestFinished, vi } from 'vitest'
 
 /**
- * Fake contexts for calling plugin hooks directly (vitepress's own test
- * pattern). Nothing here reaches vite; the one real-server test builds its
- * own config.
+ * Fake contexts for calling plugin hooks directly (vitepress's own test pattern). Nothing here
+ * reaches vite; the one real-server test builds its own config.
  */
 
 /** Vite hooks are `ObjectHook`s; ours are declared as plain functions. */

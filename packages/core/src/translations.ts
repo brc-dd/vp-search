@@ -1,6 +1,6 @@
 /**
- * UI strings. Keys shared with VitePress's `LocalSearchTranslations` keep their
- * names and semantics so existing config carries over.
+ * UI strings. Keys shared with VitePress's `LocalSearchTranslations` keep their names and semantics
+ * so existing config carries over.
  */
 export interface SearchButtonTranslations {
   buttonText?: string
@@ -26,7 +26,7 @@ export interface SearchModalTranslations {
   backButtonTitle?: string
   /** Accessible name of the results listbox. */
   resultsLabel?: string
-  /** Rendered before the quoted query, as in core. */
+  /** Rendered before the quoted query, as in VitePress's own local search. */
   noResultsText?: string
   errorText?: string
   retryText?: string
@@ -90,9 +90,8 @@ export const defaultTranslations: SearchTranslations = {
 }
 
 /**
- * Resolves one key against locale overrides, then root overrides, then the
- * defaults. Each source is walked independently, so a locale that translates
- * only part of a section doesn't shadow the deeper keys it left out.
+ * Resolves one key against locale overrides, then root overrides, then the defaults, each walked
+ * independently — a partial locale override doesn't shadow the deeper keys it left out.
  */
 export function createSearchTranslate(
   options: SearchOptions | undefined,

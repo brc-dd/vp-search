@@ -8,9 +8,8 @@ const INDEX_OR_EXT_RE = /(?:(^|\/)index)?(?:\.(?:md|html))?$/
 const TAG_RE = /<[^>]*>/g
 
 /**
- * The sidebar section a page belongs to, used as the result `group`. Ported
- * from the default theme's `getSidebar`: multi-sidebar keys resolve
- * longest-prefix-first and per-item `base` rewrites links.
+ * The sidebar section a page belongs to, used as the result `group`. Multi-sidebar keys resolve
+ * longest-prefix-first.
  */
 export function resolveGroup(
   sidebar: DefaultTheme.Sidebar | undefined,

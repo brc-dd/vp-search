@@ -2,9 +2,26 @@
   "name": "@vp-search/algolia",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
-  "description": "Algolia/DocSearch provider for @vp-search/core — plain fetch, no algoliasearch client, no DocSearch UI bundle.",
+  "description": "Algolia DocSearch provider for @vp-search/core — a plain-fetch adapter for DocSearch indexes, without the algoliasearch client or the DocSearch UI bundle.",
+  "keywords": [
+    "algolia",
+    "docsearch",
+    "search",
+    "vitepress",
+    "vitepress-plugin"
+  ],
   "license": "MIT",
+  "author": "Divyansh Singh <brc-dd@hotmail.com> (https://github.com/brc-dd)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brc-dd/vp-search.git",
+    "directory": "packages/algolia"
+  },
+  "funding": "https://github.com/sponsors/brc-dd",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
@@ -18,17 +35,14 @@
       "./package.json": "./package.json"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.client.json && tsc -p test"
   },
-  "peerDependencies": {
+  "devDependencies": {
     "@vp-search/core": "workspace:*"
   },
-  "devDependencies": {
+  "peerDependencies": {
     "@vp-search/core": "workspace:*"
   }
 }

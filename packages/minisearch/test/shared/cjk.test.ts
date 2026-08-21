@@ -3,11 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { loadTier, runSearch, type LoadedTier, type TierState } from '../../src/engine.ts'
 import { buildArtifact, hit, marked, marksOf, ZH_LANG, ZH_LONG, ZH_RECORDS } from './helpers.ts'
 
-/**
- * CJK is asserted as round-trip findability, not as token boundaries:
- * `Intl.Segmenter` boundaries are implementation-defined and ICU majors ship
- * in Node minors. Everything here builds with an explicit locale tag.
- */
+/** Round-trip findability, not token boundaries — DESIGN §13. */
 
 /** Mirrors CONTEXT_CHARS in src/engine.ts. */
 const CONTEXT_CHARS = 120
@@ -42,8 +38,8 @@ describe('CJK round trip', () => {
   })
 
   it('makes an interior word of the body text findable', () => {
-    // '生成器' sits mid-sentence with no spaces around it; it is only reachable
-    // because build and query share one segmenter.
+    // '生成器' sits mid-sentence with no spaces around it; it is only reachable because build and
+    // query share one segmenter.
     expect(hit(runSearch(both, '生成器')).url).toBe(ZH_GUIDE)
   })
 

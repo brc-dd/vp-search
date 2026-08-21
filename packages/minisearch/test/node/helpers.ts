@@ -1,7 +1,6 @@
 /**
- * Minimal stand-ins for the VitePress objects the node-side modules read.
- * `resolveSiteDataByRoute` is the real one, so `site` must carry enough for it:
- * a `locales` record above all.
+ * Minimal stand-ins for the VitePress objects the node-side modules read. `resolveSiteDataByRoute`
+ * is the real one, so `site` must carry enough for it: a `locales` record above all.
  */
 
 import type { DefaultTheme, SiteConfig } from 'vitepress'
@@ -27,8 +26,10 @@ export const silentLogger = (): TestLogger => ({
   hasWarned: false,
 })
 
-/** Only the per-locale keys the node modules read; `markdown` is what
- * `mergeMarkdownLocales` folds into the renderer options (#5350). */
+/**
+ * Only the per-locale keys the node modules read; `markdown` is what `mergeMarkdownLocales` folds
+ * into the renderer options (#5350).
+ */
 export interface FakeLocale {
   label?: string
   lang?: string

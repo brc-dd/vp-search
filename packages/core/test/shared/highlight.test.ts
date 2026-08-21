@@ -45,7 +45,6 @@ describe('fromTagged', () => {
   })
 
   test('adjacent marked runs merge into one segment', () => {
-    // ported from scratch/merge-check.ts: one <mark>, not two touching ones
     expect(fromTagged(`${PRE}快速${POST}${PRE}开始${POST} now`, PRE, POST)).toEqual([
       { text: '快速开始', mark: true },
       { text: ' now' },
@@ -122,7 +121,6 @@ describe('fromRanges', () => {
   })
 
   test('adjacent ranges merge into one marked segment', () => {
-    // ported from scratch/merge-check.ts
     expect(
       fromRanges('快速开始 now', [
         { start: 0, end: 2 },

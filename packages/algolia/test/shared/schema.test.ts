@@ -3,8 +3,8 @@ import { capturedResponse } from './fixtures/docsearch-response.ts'
 import { consumedPaths, drift } from './schema.ts'
 
 /**
- * The live lane's drift detector, unit-tested against a known-good capture and
- * deliberately broken records — a schema guard that cannot fail is worthless.
+ * The live lane's drift detector, unit-tested against a known-good capture and deliberately broken
+ * records — a schema guard that cannot fail is worthless.
  */
 
 const GOOD: Record<string, unknown> = {

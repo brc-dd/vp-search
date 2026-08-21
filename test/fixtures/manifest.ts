@@ -1,9 +1,9 @@
 import type { IndexData, LocaleEntry } from '../../packages/minisearch/src/types.ts'
 
 /**
- * Stand-in for `virtual:vp-search/minisearch/manifest`. Defaults to the dev
- * shape (`locales` inlined, `manifest` null), so the adapter needs no fetch;
- * `__setBuildShape()` switches to the build shape it does fetch.
+ * Stand-in for `virtual:vp-search/minisearch/manifest`. Defaults to the dev shape (`locales`
+ * inlined, `manifest` null), so the adapter needs no fetch; `__setBuildShape()` switches to the
+ * build shape it does fetch.
  */
 
 const ROOT: LocaleEntry = {

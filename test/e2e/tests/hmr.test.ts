@@ -6,14 +6,13 @@ import { page, visit } from '../setup/browser.ts'
 import { DIALOG, openByClick, options, query, queryEmpty } from '../setup/search.ts'
 
 /**
- * The dev chain DESIGN §11 describes, end to end: an edit reaches `hotUpdate`,
- * which re-indexes that one page, bumps the artifact version and invalidates
- * the manifest, whose `?v=N` URLs send the client past its module cache for a
- * fresh index. A build writes its index once at `buildEnd`, so none of this
- * exists there.
+ * The dev chain DESIGN §11 describes, end to end: an edit reaches `hotUpdate`, which re-indexes
+ * that one page, bumps the artifact version and invalidates the manifest, whose `?v=N` URLs send
+ * the client past its module cache for a fresh index. A build writes its index once at `buildEnd`,
+ * so none of this exists there.
  *
- * On its own server and its own site — see `site-hmr/.vitepress/config.ts` for
- * why an edit to the shared fixture cannot be contained to one test file.
+ * On its own server and its own site — see `site-hmr/.vitepress/config.ts` for why an edit to the
+ * shared fixture cannot be contained to one test file.
  */
 const root = fileURLToPath(new URL('../site-hmr', import.meta.url))
 const PAGE = fileURLToPath(new URL('../site-hmr/page.md', import.meta.url))

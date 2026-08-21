@@ -239,16 +239,16 @@ describe('staleness', () => {
   })
 
   test('a superseded synchronous search runs anyway, and the counter drops it', async () => {
-    // Why the generation counter exists next to the aborts: a sync adapter
-    // never looks at the signal, so both runs answer — the newest must win.
+    // Why the generation counter exists next to the aborts: a sync adapter never looks at the
+    // signal, so both runs answer — the newest must win.
     const gate = deferred<void>()
     const searchFn = fake((query) => response(`/${query}`))
     const { query, results, status } = setup({
       adapter: { name: 'sync', load: () => gate.promise, search: searchFn },
     })
 
-    // the one-time `load` parks both runs, so they overlap the way an
-    // invalidation or a retry overlaps them in the component
+    // the one-time `load` parks both runs, so they overlap the way an invalidation or a retry
+    // overlaps them in the component
     await search(query, 'a')
     await search(query, 'ab')
     expect(searchFn).not.toHaveBeenCalled()
@@ -269,8 +269,8 @@ describe('staleness', () => {
   })
 
   test('an AbortError from the current run is a failed search', async () => {
-    // nothing superseded it, so the adapter aborted itself — its own timeout,
-    // say — and the user is left with a query that produced nothing
+    // nothing superseded it, so the adapter aborted itself — its own timeout, say — and the user is
+    // left with a query that produced nothing
     const load = vi.fn(async () => {})
     const searchFn = fake(() => Promise.reject(new DOMException('aborted', 'AbortError')))
     const { query, status, error, retry } = setup({
@@ -383,8 +383,8 @@ describe('load', () => {
   })
 
   test('memoizes a load that returns void', async () => {
-    // the adapter contract allows a synchronous `load`, which returns nothing
-    // a promise-shaped memo could hold on to
+    // the adapter contract allows a synchronous `load`, which returns nothing a promise-shaped memo
+    // could hold on to
     const load = vi.fn((): void => {})
     const { query } = setup({ adapter: { name: 'fake', load, search: fake() } })
 
@@ -435,7 +435,6 @@ describe('context', () => {
 
 describe('onInvalidate', () => {
   test('re-runs the active query when a richer tier lands', async () => {
-    // ported from scratch/invalidate-check.ts
     let phase = 'titles'
     let notify: (() => void) | undefined
     const adapter: SearchAdapter = {

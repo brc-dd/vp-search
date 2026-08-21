@@ -22,12 +22,8 @@ export interface DevIndexer {
 }
 
 /**
- * `buildEnd` never fires in dev, so dev re-renders markdown itself instead of
- * reading final HTML. Documented fidelity gap: anything Vue evaluates at
- * render — vite transforms, dynamic routes, `$frontmatter` interpolation,
- * `<script setup>` values, data loaders — only reaches production indexes,
- * while `<ClientOnly>` slots invert (indexed here, absent from SSR output and
- * so from production).
+ * `buildEnd` never fires in dev, so dev re-renders markdown itself instead of reading final HTML —
+ * a documented fidelity gap vs. production (DESIGN §11).
  */
 export function createDevIndexer(
   siteConfig: SiteConfig<DefaultTheme.Config>,
@@ -39,8 +35,8 @@ export function createDevIndexer(
   function md(): Promise<MarkdownRenderer> {
     return (renderer ??= createMarkdownRenderer(
       siteConfig.srcDir,
-      // The renderer is a singleton shared with markdownToVue, so it must be
-      // asked for with the complete, locale-merged options (#5350).
+      // The renderer is a singleton shared with markdownToVue, so it must be asked for with the
+      // complete, locale-merged options (#5350).
       mergeMarkdownLocales(siteConfig.markdown, siteConfig.site.locales),
       siteConfig.site.base,
       siteConfig.logger,
@@ -63,8 +59,8 @@ export function createDevIndexer(
     try {
       html = await (await md()).renderAsync(await readFile(file, 'utf-8'), env)
     } catch (error) {
-      // A page that fails to render must not take the dev server down; its own
-      // markdown transform already surfaces the error.
+      // A page that fails to render must not take the dev server down; its own markdown transform
+      // already surfaces the error.
       siteConfig.logger.warn(
         `[vp-search] minisearch failed to index ${page}: ${(error as Error).message}`,
       )
@@ -77,8 +73,8 @@ export function createDevIndexer(
         filePath: page,
         title: pageTitle(env),
         frontmatter: env.frontmatter ?? {},
-        // The build sees a full page; dev has only the rendered body, so it
-        // gets the `<main>` wrapper `contentSelector` looks for.
+        // The build sees a full page; dev has only the rendered body, so it gets the `<main>`
+        // wrapper `contentSelector` looks for.
         html: `<main>${html}</main>`,
       },
       true,
@@ -86,9 +82,8 @@ export function createDevIndexer(
   }
 
   async function scanAll(): Promise<void> {
-    // Resolved dynamic routes sit in `pages` with no source file behind them —
-    // the production-only slice of the fidelity gap; reading them would only
-    // warn ENOENT once per route per scan.
+    // Resolved dynamic routes sit in `pages` with no source file behind them — the production-only
+    // slice of the fidelity gap; reading them would only warn ENOENT once per route per scan.
     const dynamic = new Set(siteConfig.dynamicRoutes?.map((route) => route.path))
     const pages = siteConfig.pages.filter((page) => !dynamic.has(page))
     let cursor = 0

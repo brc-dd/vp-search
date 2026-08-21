@@ -1,12 +1,11 @@
 /**
- * `minisearch()` itself — the node half of the ProviderDefinition. Everything
- * here drives the provider through the public `ProviderApi` the core plugin
- * hands it (recorded, not real: core's own wiring is covered by
- * `packages/core/test/node/provider-api.test.ts`), so a change to the contract
- * shows up as a signature failure rather than a silent no-op.
+ * `minisearch()` itself — the node half of the ProviderDefinition. Everything here drives the
+ * provider through the public `ProviderApi` the core plugin hands it (recorded, not real: core's
+ * own wiring is covered by `packages/core/test/node/provider-api.test.ts`), so a change to the
+ * contract shows up as a signature failure rather than a silent no-op.
  *
- * The dev paths need `createDevIndexer`'s renderer, so `createMarkdownRenderer`
- * and `readFile` are mocked the same way `dev.test.ts` mocks them.
+ * The dev paths need `createDevIndexer`'s renderer, so `createMarkdownRenderer` and `readFile` are
+ * mocked the same way `dev.test.ts` mocks them.
  */
 
 import type { ProviderApi, ProviderPage } from '@vp-search/core/node'
@@ -53,9 +52,11 @@ vi.mock('node:fs/promises', async (importOriginal) => {
   return { ...actual, readFile: mocks.readFile } as unknown as typeof actual
 })
 
-/** What core's `createProviderApi` gives a provider, with every call recorded.
- * Ids arrive here unnamespaced — core prefixes `virtual:vp-search/minisearch/`
- * on its side, so the provider only ever passes the bare id. */
+/**
+ * What core's `createProviderApi` gives a provider, with every call recorded. Ids arrive here
+ * unnamespaced — core prefixes `virtual:vp-search/minisearch/` on its side, so the provider only
+ * ever passes the bare id.
+ */
 interface Recorded {
   api: ProviderApi
   virtuals: Map<string, () => string | Promise<string>>

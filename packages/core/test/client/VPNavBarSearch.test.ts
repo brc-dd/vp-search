@@ -5,10 +5,9 @@ import VPNavBarSearch from '../../src/client/VPNavBarSearch.vue'
 import { __reset as resetVitepress } from '../../../../test/fixtures/vitepress.ts'
 
 /**
- * The shared adapter fixture exports one frozen adapter with no `preconnect`,
- * and mutating it would leak into every other client test — so this file owns
- * the virtual module instead. The getter keeps `preconnect` settable after the
- * component has already imported it.
+ * The shared adapter fixture exports one frozen adapter with no `preconnect`, and mutating it would
+ * leak into every other client test — so this file owns the virtual module instead. The getter
+ * keeps `preconnect` settable after the component has already imported it.
  */
 const backend = vi.hoisted(() => ({ preconnect: undefined as string[] | undefined }))
 
@@ -43,7 +42,7 @@ function mounted() {
 const dialog = () => document.querySelector(DIALOG)
 const links = () => [...document.head.querySelectorAll<HTMLLinkElement>('link[rel="preconnect"]')]
 
-/** happy-dom ships no `requestIdleCallback`, so the component's `in` check sees this. */
+/** Happy-dom ships no `requestIdleCallback`, so the component's `in` check sees this. */
 function stubIdleCallback() {
   const idle = vi.fn((callback: () => void) => void callback())
   vi.stubGlobal('requestIdleCallback', idle)
@@ -74,9 +73,8 @@ afterEach(async () => {
   backend.preconnect = undefined
   vi.useRealTimers()
   resetVitepress()
-  // The open path fires defineAsyncComponent's import of VPSearchBox; when this
-  // file runs on a cold module graph and finishes first, that chain is still in
-  // flight at environment teardown (seed 324460688171 caught it).
+  // VPSearchBox's async import can still be in flight at teardown on a cold module graph (seed
+  // 324460688171 caught it).
   await vi.dynamicImportSettled()
 })
 
@@ -91,8 +89,7 @@ describe('preconnect', () => {
       'https://a.example',
       'https://b.example',
     ])
-    // `crossOrigin = ''` is what makes the warmed connection reusable by the
-    // adapter's own anonymous fetches
+    // crossorigin='' is what lets the adapter's own anonymous fetches reuse it
     expect(links().map((link) => link.getAttribute('crossorigin'))).toEqual(['', ''])
     expect(links().map((link) => link.id)).toEqual([
       'vp-search-preconnect-https://a.example',

@@ -1,7 +1,7 @@
 /**
- * Structural validation of the DocSearch record fields the adapter consumes.
- * Lives in the shared lane so it can be unit-tested hermetically; the live
- * lane runs it against real records to catch index/crawler drift.
+ * Structural validation of the DocSearch record fields the adapter consumes. Lives in the shared
+ * lane so it can be unit-tested hermetically; the live lane runs it against real records to catch
+ * index/crawler drift.
  */
 
 export const LEVELS = ['lvl0', 'lvl1', 'lvl2', 'lvl3', 'lvl4', 'lvl5', 'lvl6'] as const
@@ -70,8 +70,8 @@ export function drift(hits: Record<string, unknown>[]): string[] {
 }
 
 /**
- * The paths the adapter reads, with level numbers collapsed to `lvlN` so that
- * two records of the same `type` at different depths still compare equal.
+ * The paths the adapter reads, with level numbers collapsed to `lvlN` so that two records of the
+ * same `type` at different depths still compare equal.
  */
 export function consumedPaths(hit: Record<string, unknown>): string[] {
   const paths = new Set<string>()

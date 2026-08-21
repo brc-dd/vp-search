@@ -6,10 +6,9 @@ import { search } from '../../src/node/index.ts'
 import { fakeSiteConfig, tempDir } from './helpers.ts'
 
 /**
- * One pass through a real vite server. Hook-level tests can't catch a `\0`
- * mismatch between `resolveId` and `load`, an id vite refuses to route to us,
- * or a `clientModule` path that resolves on paper but not through the
- * resolver — this does.
+ * One pass through a real vite server. Hook-level tests can't catch a `\0` mismatch between
+ * `resolveId` and `load`, an id vite refuses to route to us, or a `clientModule` path that resolves
+ * on paper but not through the resolver — this does.
  */
 test('a real vite server routes and executes every vp-search virtual module', async () => {
   const root = await tempDir()

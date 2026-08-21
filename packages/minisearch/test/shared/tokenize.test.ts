@@ -3,9 +3,8 @@ import { createTokenizer } from '../../src/tokenize.ts'
 import { LANG, ZH_LANG } from './helpers.ts'
 
 /**
- * `Intl.Segmenter` word boundaries are implementation-defined (ECMA-402) and
- * ICU majors land in Node minors, so everything here asserts invariants rather
- * than exact token arrays — and always with an explicit locale tag.
+ * Invariants, not exact token arrays — `Intl.Segmenter` boundaries are ICU/Node-version-dependent
+ * (DESIGN §13).
  */
 
 const CORPUS = [

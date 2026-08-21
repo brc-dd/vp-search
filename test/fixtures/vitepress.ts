@@ -1,11 +1,11 @@
 import { ref, type Ref } from 'vue'
 
 /**
- * Stand-in for the `vitepress` client entry, aliased in by the `client` project.
- * Only what `packages/core/src/client/` imports is implemented.
+ * Stand-in for the `vitepress` client entry, aliased in by the `client` project. Only what
+ * `packages/core/src/client/` imports is implemented.
  *
- * Components reach it through the alias; tests import this file directly for the
- * `__`-prefixed helpers. Both land on the same module instance, so state is shared.
+ * Components reach it through the alias; tests import this file directly for the `__`-prefixed
+ * helpers. Both land on the same module instance, so state is shared.
  */
 
 export interface FixtureSiteData {

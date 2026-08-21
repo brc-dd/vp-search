@@ -10,9 +10,8 @@ export interface LocaleEntry {
 }
 
 /**
- * Default export of `virtual:vp-search/minisearch/manifest`. Dev inlines
- * `locales`; a build leaves it null and points `manifest` at the same record
- * on disk.
+ * Default export of `virtual:vp-search/minisearch/manifest`. Dev inlines `locales`; a build leaves
+ * it null and points `manifest` at the same record on disk.
  */
 export interface IndexData {
   base: string
@@ -65,6 +64,8 @@ export type WorkerRequest = InitRequest | SearchRequest | { type: 'dispose' }
 export type WorkerResponse =
   | { type: 'tier'; tier: Tier }
   | { type: 'results'; id: number; response: SearchResponse }
-  /** Without this, a failed artifact fetch would hang `load()` forever: an
-   * async handler's rejection never reaches the worker's `error` event. */
+  /**
+   * Without this, a failed artifact fetch would hang `load()` forever: an async handler's rejection
+   * never reaches the worker's `error` event.
+   */
   | { type: 'error'; id?: number; message: string }

@@ -17,8 +17,8 @@ interface Site {
 }
 
 /**
- * One Chromium server plus one fixture site for the whole `e2e` project;
- * per-file workers connect over WS and address the site through `baseUrl`.
+ * One Chromium server plus one fixture site for the whole `e2e` project; per-file workers connect
+ * over WS and address the site through `baseUrl`.
  */
 export default async function setup(project: TestProject): Promise<() => Promise<void>> {
   // Ordered browser-first so the site server never waits on live sockets.

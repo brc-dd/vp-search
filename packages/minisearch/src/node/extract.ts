@@ -14,9 +14,8 @@ const ELEMENT_NODE = 1
 const TEXT_NODE = 3
 
 /**
- * The slice of the DOM contract the extractor walks. linkedom's own types
- * assume the DOM lib (`implements globalThis.Element`), which this node-side
- * module deliberately does not load.
+ * The slice of the DOM contract the extractor walks. linkedom's own types assume the DOM lib
+ * (`implements globalThis.Element`), which this node-side module deliberately does not load.
  */
 interface NodeLike {
   nodeType: number
@@ -35,9 +34,8 @@ interface ElementLike extends NodeLike {
 const SKIP_TAGS = new Set(['script', 'style', 'noscript', 'template'])
 
 /**
- * Boundaries that must not fuse words. Inline elements are deliberately absent:
- * Shiki wraps every code token in a `<span>`, so separating those would turn
- * `foo(` into `foo (`.
+ * Boundaries that must not fuse words. Inline elements are deliberately absent: Shiki wraps every
+ * code token in a `<span>`, so separating those would turn `foo(` into `foo (`.
  */
 // prettier-ignore
 const BLOCK_TAGS = new Set([
@@ -66,9 +64,9 @@ interface Draft {
 }
 
 /**
- * Splits a rendered page into one record per id-bearing heading, plus a
- * page-level record for prose before the first heading (and for pages with no
- * headings at all — otherwise they index as nothing).
+ * Splits a rendered page into one record per id-bearing heading, plus a page-level record for prose
+ * before the first heading (and for pages with no headings at all — otherwise they index as
+ * nothing).
  */
 export function splitIntoSections(
   html: string,

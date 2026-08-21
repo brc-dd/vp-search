@@ -87,8 +87,10 @@ export function excerpt(text: string, terms: readonly string[]): MarkedText {
   )
 }
 
-/** Longest term first, so the window anchors on the most specific match; terms
- * that matched another field only are skipped. */
+/**
+ * Longest term first, so the window anchors on the most specific match; terms that matched another
+ * field only are skipped.
+ */
 function firstMatch(text: string, terms: readonly string[]): [number, number] {
   for (const term of [...terms].sort((a, b) => b.length - a.length)) {
     const match = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').exec(text)

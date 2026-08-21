@@ -49,10 +49,10 @@ export async function opened(target: Page = page()): Promise<void> {
 }
 
 /**
- * The `open` attribute goes away synchronously but the dialog's `close` event
- * is fired from a queued task. The component now closes synchronously on every
- * path it owns, yet a foreign close still reaches it a task late — so waiting
- * on the attribute alone would let the next interaction slip into that gap.
+ * The `open` attribute goes away synchronously but the dialog's `close` event is fired from a
+ * queued task. The component now closes synchronously on every path it owns, yet a foreign close
+ * still reaches it a task late — so waiting on the attribute alone would let the next interaction
+ * slip into that gap.
  */
 export async function closed(target: Page = page()): Promise<void> {
   await target.waitForSelector(OPEN_DIALOG, { state: 'detached' })

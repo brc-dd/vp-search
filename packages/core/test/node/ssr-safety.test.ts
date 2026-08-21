@@ -1,31 +1,24 @@
 /**
- * DESIGN §3, "SSR-safe by construction": VitePress renders every page in Node
- * before it reaches a browser, so importing an adapter module — and calling
- * its factory — must not touch `document`, `window`, or `Worker`. The
- * guarantee covers module scope and construction only: `load()`/`search()`
- * legitimately reach for browser APIs, and the one `load()` here is the case
- * that fails before it gets that far.
- *
- * This lane is bare Node, so the absence of a DOM is asserted first — without
- * that, an adapter that used `document` would pass by accident under a jsdom
- * default.
+ * DESIGN §3: importing an adapter module and calling its factory must never touch `document`,
+ * `window`, or `Worker` — only `load()`/`search()` may reach for browser APIs. Node has no DOM by
+ * default, so the guard below asserts that first; otherwise a `document`-touching adapter would
+ * pass by accident under a jsdom-flavored project.
  */
 
 import { describe, expect, test, vi } from 'vitest'
 import type { SearchAdapter } from '../../src/index.ts'
 
-// The node project aliases no virtual modules. The minisearch adapter reaches
-// its manifest through a lazy `import()` inside `load()`, so this factory is
-// what makes that path reachable at all here — and it is the seam that would
-// catch the specifier moving to module scope, where it must never be.
+// The node project aliases no virtual modules, so this mock is what makes minisearch's lazy
+// `import()` inside `load()` reachable here — and the seam that would catch that specifier moving
+// to module scope, which it must not.
 vi.mock('virtual:vp-search/minisearch/manifest', () => ({ default: null }))
 
-/** Cross-package by relative path: neither provider is a devDep of core, and
- * the subject is exactly what each published `./adapter` entry does. The
- * minisearch one goes through a variable so tsc stops at the boundary — its
- * `virtual:` specifier is mapped by minisearch's own tsconfig `paths`, and
- * typechecking another package's src from here would need that mapping
- * duplicated. Vite still resolves it at runtime, which is the point. */
+/**
+ * Cross-package by relative path — neither provider is a devDep of core, and this is exactly what
+ * each published `./adapter` entry does. The minisearch import goes through this variable so tsc
+ * stops at the boundary instead of following its `virtual:` specifier, which only minisearch's own
+ * tsconfig `paths` maps; Vite still resolves it fine at runtime.
+ */
 const importAtRuntime = (specifier: string): Promise<Record<string, unknown>> =>
   import(specifier) as Promise<Record<string, unknown>>
 
@@ -73,8 +66,8 @@ describe('adapter modules import and construct under bare Node', () => {
     const module = await ADAPTERS.minisearch()
     const adapter = module.default()
 
-    // `load()` gets as far as the virtual module (mocked to the null stub core
-    // serves for an inactive provider) and gives up there — no `new Worker`.
+    // `load()` gets as far as the virtual module (mocked to the null stub core serves for an
+    // inactive provider) and gives up there — no `new Worker`.
     await expect(adapter.load?.({})).rejects.toThrow(/running another provider/)
     expect(globalThis.Worker).toBeUndefined()
   })

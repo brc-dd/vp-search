@@ -3,12 +3,11 @@ import { goto, page } from '../setup/browser.ts'
 import { openByClick, options, query, queryEmpty } from '../setup/search.ts'
 
 /**
- * DESIGN §11's fidelity contract, made executable. A build indexes final HTML,
- * so everything the render produces is in it; dev re-renders markdown with the
- * configured renderer instead, so it sees the source and whatever that
- * renderer's own plugins expand. Each token below is unique to one record, and
- * `where` is the measured reality — a case flipping sides is the signal that
- * the gap moved.
+ * DESIGN §11's fidelity contract, made executable. A build indexes final HTML, so everything the
+ * render produces is in it; dev re-renders markdown with the configured renderer instead, so it
+ * sees the source and whatever that renderer's own plugins expand. Each token below is unique to
+ * one record, and `where` is the measured reality — a case flipping sides is the signal that the
+ * gap moved.
  */
 type Where = 'build' | 'dev' | 'both'
 

@@ -22,8 +22,8 @@ import {
 } from './helpers.ts'
 
 /**
- * The ProviderApi is only reachable through `configResolved`, so every test
- * here drives the plugin the way vite does and captures what `setup` receives.
+ * The ProviderApi is only reachable through `configResolved`, so every test here drives the plugin
+ * the way vite does and captures what `setup` receives.
  */
 interface Installed {
   plugin: ReturnType<typeof search>

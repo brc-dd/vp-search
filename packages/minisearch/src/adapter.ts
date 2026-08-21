@@ -11,9 +11,8 @@ interface Deferred<T> {
 }
 
 /**
- * Queries the build-time MiniSearch artifacts in a module worker: `load()`
- * resolves as soon as the titles tier answers, and the content tier upgrades
- * the same worker in the background.
+ * Queries the build-time MiniSearch artifacts in a module worker: `load()` resolves as soon as the
+ * titles tier answers, and the content tier upgrades the same worker in the background.
  */
 export function minisearchAdapter(): SearchAdapter {
   let worker: Worker | undefined

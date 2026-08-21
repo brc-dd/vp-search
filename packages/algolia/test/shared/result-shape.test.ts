@@ -1,13 +1,11 @@
 /**
- * The result-shape allowlist. DESIGN §1 draws the format as a required core
- * plus optional fields plus `raw`; §10 records four things deliberately left
- * out (positions, `subResults`, `matchedTerms`, a `meta` bag). Those omissions
- * are only real if adapters cannot quietly reintroduce them, so this asserts
- * the closed key set over the real mapper — every hit of the captured
- * response, plus the degenerate hits the mapper has to survive.
+ * The result-shape allowlist. DESIGN §1 draws the format as a required core plus optional fields
+ * plus `raw`; §10 records four things deliberately left out (positions, `subResults`,
+ * `matchedTerms`, a `meta` bag). Those omissions are only real if adapters cannot quietly
+ * reintroduce them, so this asserts the closed key set over the real mapper — every hit of the
+ * captured response, plus the degenerate hits the mapper has to survive.
  *
- * A sibling block covers the minisearch mapper in
- * `packages/minisearch/test/shared/engine.test.ts`.
+ * A sibling block covers the minisearch mapper in `packages/minisearch/test/shared/engine.test.ts`.
  */
 
 import type { SearchResult } from '@vp-search/core'

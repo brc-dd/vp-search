@@ -6,15 +6,14 @@ import type { Artifact } from '../../src/node/types.ts'
 import { fakeSiteConfig, type FakeSiteOptions, type TestLogger } from './helpers.ts'
 
 /**
- * `createDevIndexer` builds its own renderer via `createMarkdownRenderer`, so
- * the only way to reach its seams — scan/HMR bookkeeping, locale routing,
- * frontmatter titles, the `<main>` wrapper, the render-failure guard — is to
- * mock that factory and `readFile`.
+ * `createDevIndexer` builds its own renderer via `createMarkdownRenderer`, so the only way to reach
+ * its seams — scan/HMR bookkeeping, locale routing, frontmatter titles, the `<main>` wrapper, the
+ * render-failure guard — is to mock that factory and `readFile`.
  *
- * Deliberately NOT covered here, and left to the e2e lane: the real markdown
- * pipeline (shiki, containers, unrendered Vue components), the dev middleware
- * that serves artifacts, and the `hotUpdate` → virtual-module invalidation
- * round trip. None of those exist without a running VitePress dev server.
+ * Deliberately NOT covered here, and left to the e2e lane: the real markdown pipeline (shiki,
+ * containers, unrendered Vue components), the dev middleware that serves artifacts, and the
+ * `hotUpdate` → virtual-module invalidation round trip. None of those exist without a running
+ * VitePress dev server.
  */
 
 const SRC_DIR = '/docs'
@@ -121,8 +120,7 @@ describe('first scan', () => {
   })
 
   it('skips resolved dynamic routes instead of warning ENOENT on them', async () => {
-    // `pages` lists resolved dynamic routes, but no source file exists for
-    // them in dev — the documented production-only slice of the index.
+    // No dev source file for a resolved dynamic route to read — DESIGN §11.
     const { dev, indexer, logger } = setup(['guide.md', 'guide/alfa.md'], {
       dynamicRoutes: [{ route: 'guide/[pkg].md', path: 'guide/alfa.md' }],
     })
@@ -141,10 +139,10 @@ describe('first scan', () => {
   })
 
   it('asks for the renderer with the locale-merged markdown options (#5350)', async () => {
-    // The renderer is a process-wide singleton shared with markdownToVue:
-    // whoever builds it first decides its options for everyone, so asking with
-    // the raw `siteConfig.markdown` would strip per-locale markdown config off
-    // the real pipeline. The merged form is the whole point of the call.
+    // The renderer is a process-wide singleton shared with markdownToVue: whoever builds it first
+    // decides its options for everyone, so asking with the raw `siteConfig.markdown` would strip
+    // per-locale markdown config off the real pipeline. The merged form is the whole point of the
+    // call.
     const { dev, config } = setup(['guide.md'], {
       markdown: { lineNumbers: true },
       locales: {

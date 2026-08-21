@@ -97,9 +97,8 @@ describe('createSearchTranslate', () => {
 })
 
 /**
- * Every leaf of `SearchTranslations`. `satisfies` rejects a key the interface
- * does not declare; `KeysAreExhaustive` below rejects a key it declares but
- * this list omits.
+ * Every leaf of `SearchTranslations`. `satisfies` rejects a key the interface does not declare;
+ * `KeysAreExhaustive` below rejects a key it declares but this list omits.
  */
 const KEYS = [
   'button.buttonText',

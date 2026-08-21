@@ -12,8 +12,8 @@ import {
 } from '../setup/search.ts'
 
 /**
- * Both artifact shapes at once: dev serves `/@vp-search/<locale>.<tier>.json?v=N`
- * from middleware, a build emits `/vp-search/<locale>.<tier>.<hash>.json`.
+ * Both artifact shapes at once: dev serves `/@vp-search/<locale>.<tier>.json?v=N` from middleware,
+ * a build emits `/vp-search/<locale>.<tier>.<hash>.json`.
  */
 const TITLES_ARTIFACT = /\.titles\.[^/]*json/
 const CONTENT_ARTIFACT = /\.content\.[^/]*json/

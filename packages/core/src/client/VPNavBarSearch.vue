@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onKeyStroke } from '@vueuse/core'
 import adapter from 'virtual:vp-search/adapter'
-// not re-exported by `vitepress/theme`, so the button is reused by path rather
-// than by copying its styles
+// Reused by path (not re-exported by `vitepress/theme`) to avoid copying its styles.
 import VPNavBarSearchButton from 'vitepress/dist/client/theme-default/components/VPNavBarSearchButton.vue'
 import { defineAsyncComponent, onMounted, ref } from 'vue'
 import { useTranslate } from './translate.ts'
