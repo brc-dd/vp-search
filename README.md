@@ -2,7 +2,7 @@
 
 Pluggable search for VitePress: one accessible, theme-native search UI, with backends as thin adapters over a shared result format.
 
-> Pre-release — not yet on npm. The Algolia and MiniSearch providers work end to end: built, typed, and covered by ~700 tests including real-browser e2e and a nightly live contract against the public DocSearch index. Design decisions live in [DESIGN.md](DESIGN.md), the worklist in [TODO.md](TODO.md).
+> Early releases — `0.1.x` on npm, published from CI with provenance. The Algolia and MiniSearch providers work end to end: built, typed, and covered by ~700 tests including real-browser e2e and a nightly live contract against the public DocSearch index. Design decisions live in [DESIGN.md](DESIGN.md), the worklist in [TODO.md](TODO.md).
 
 ## Why
 
@@ -17,6 +17,10 @@ VitePress ships two search UIs (local/MiniSearch and Algolia DocSearch) and the 
 Non-goals: AI answer/chat surfaces (this is search only), crawling/indexing services, replacing VitePress's built-in providers upstream, ranking logic of our own.
 
 ## Usage
+
+```sh
+pnpm add -D @vp-search/core @vp-search/minisearch # or @vp-search/algolia
+```
 
 ```ts
 // .vitepress/config.ts
